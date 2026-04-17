@@ -23,6 +23,10 @@ MESSAGES_DIR = ACCESS_STORAGE / "messages"
 TEST_CUSTOMER_ALL_PROJECTS_PHONE = "9392698439"
 
 
+def _new_invite_code() -> str:
+    return secrets.token_hex(3).upper()
+
+
 def ensure_storage() -> None:
     ACCESS_STORAGE.mkdir(parents=True, exist_ok=True)
     MESSAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -100,6 +104,7 @@ def build_access_record(project_id: str, payload: dict[str, Any], owner_user: di
         },
         "status": "active" if existing.get("customer_user_id") or matched_customer else status_value,
         "invite_token": existing.get("invite_token") or secrets.token_urlsafe(18),
+        "invite_code": str(existing.get("invite_code") or _new_invite_code()).upper(),
         "created_at": existing.get("created_at") or utc_now_iso(),
         "updated_at": utc_now_iso(),
     }
@@ -115,6 +120,16 @@ def get_access_record(project_id: str) -> dict[str, Any] | None:
     if supabase_enabled():
         return load_access_record_supabase(project_id)
     return load_access_index().get(project_id)
+
+
+def find_access_record_by_invite_code(invite_code: str) -> tuple[str, dict[str, Any]] | None:
+    target = invite_code.strip().upper()
+    if not target:
+        return None
+    for project_id, record in load_access_index().items():
+        if str(record.get("invite_code") or "").upper() == target:
+            return project_id, record
+    return None
 
 
 def is_global_test_customer(user: dict[str, Any]) -> bool:

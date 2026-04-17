@@ -27,6 +27,7 @@ export interface ProjectSummary {
   access_status?: string | null
   customer_user_id?: string | null
   vendor_user_id?: string | null
+  invite_code?: string | null
 }
 
 export interface DashboardSummaryResponse {

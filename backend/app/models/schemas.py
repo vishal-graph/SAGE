@@ -83,6 +83,18 @@ class SignInRequest(AuthCredentials):
     pass
 
 
+class CustomerInviteActivateRequest(BaseModel):
+    identifier: str
+    invite_code: str = Field(..., min_length=6, max_length=6)
+    password: str = Field(..., min_length=8)
+    name: str = Field(..., min_length=2, max_length=80)
+
+
+class InviteCodeSignInRequest(BaseModel):
+    identifier: str
+    invite_code: str = Field(..., min_length=6, max_length=6)
+
+
 class AuthResponse(BaseModel):
     token: str
     user: UserSummary
@@ -103,6 +115,7 @@ class ProjectSummary(BaseModel):
     access_status: Optional[str] = None
     customer_user_id: Optional[str] = None
     vendor_user_id: Optional[str] = None
+    invite_code: Optional[str] = None
 
 
 class DashboardSummaryResponse(BaseModel):

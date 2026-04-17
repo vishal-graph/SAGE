@@ -14,14 +14,22 @@ from typing import Any, Dict
 from fastapi import Header, HTTPException, status
 
 from app.models.schemas import UserSummary
+from app.services.supabase_client import create_supabase, get_supabase_env
 
 AUTH_STORAGE = Path(__file__).resolve().parent.parent.parent / "storage" / "auth"
 USERS_PATH = AUTH_STORAGE / "users.json"
 SESSIONS_PATH = AUTH_STORAGE / "sessions.json"
+SUPABASE_USERS_TABLE = "auth_users"
+SUPABASE_SESSIONS_TABLE = "auth_sessions"
 
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _supabase_enabled() -> bool:
+    url, key = get_supabase_env()
+    return bool(url and key)
 
 
 def ensure_storage() -> None:
@@ -55,6 +63,19 @@ def _normalize_user_record(user: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def load_users() -> list[Dict[str, Any]]:
+    if _supabase_enabled():
+        try:
+            result = (
+                create_supabase()
+                .table(SUPABASE_USERS_TABLE)
+                .select("id,email,phone,name,role,password_hash,created_at")
+                .execute()
+            )
+            rows = result.data or []
+            normalized = [_normalize_user_record(user) for user in rows if isinstance(user, dict)]
+            return normalized
+        except Exception:
+            return []
     raw = _read_json(USERS_PATH, [])
     if not isinstance(raw, list):
         return []
@@ -65,15 +86,59 @@ def load_users() -> list[Dict[str, Any]]:
 
 
 def save_users(users: list[Dict[str, Any]]) -> None:
+    if _supabase_enabled():
+        try:
+            if not users:
+                return
+            create_supabase().table(SUPABASE_USERS_TABLE).upsert(users, on_conflict="id").execute()
+        except Exception:
+            return
+        return
     _write_json(USERS_PATH, users)
 
 
 def load_sessions() -> Dict[str, Dict[str, str]]:
+    if _supabase_enabled():
+        try:
+            result = (
+                create_supabase()
+                .table(SUPABASE_SESSIONS_TABLE)
+                .select("token,user_id,created_at")
+                .execute()
+            )
+            rows = result.data or []
+            out: Dict[str, Dict[str, str]] = {}
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                token = str(row.get("token") or "").strip()
+                user_id = str(row.get("user_id") or "").strip()
+                created_at = str(row.get("created_at") or "")
+                if token and user_id:
+                    out[token] = {"user_id": user_id, "created_at": created_at}
+            return out
+        except Exception:
+            return {}
     raw = _read_json(SESSIONS_PATH, {})
     return raw if isinstance(raw, dict) else {}
 
 
 def save_sessions(sessions: Dict[str, Dict[str, str]]) -> None:
+    if _supabase_enabled():
+        try:
+            db = create_supabase()
+            db.table(SUPABASE_SESSIONS_TABLE).delete().neq("token", "").execute()
+            if sessions:
+                payload = [
+                    {"token": token, "user_id": str(meta.get("user_id", "")), "created_at": str(meta.get("created_at", utc_now_iso()))}
+                    for token, meta in sessions.items()
+                    if token and str(meta.get("user_id", "")).strip()
+                ]
+                if payload:
+                    db.table(SUPABASE_SESSIONS_TABLE).insert(payload).execute()
+        except Exception:
+            return
+        return
     _write_json(SESSIONS_PATH, sessions)
 
 
@@ -169,15 +234,46 @@ def create_user(*, email: str, phone: str, password: str, name: str, role: str) 
     return user
 
 
+def save_user(user: Dict[str, Any]) -> None:
+    users = load_users()
+    user_id = str(user.get("id") or "")
+    if not user_id:
+        return
+    updated = False
+    for idx, existing in enumerate(users):
+        if str(existing.get("id")) == user_id:
+            users[idx] = _normalize_user_record({**existing, **user})
+            updated = True
+            break
+    if not updated:
+        users.append(_normalize_user_record(user))
+    save_users(users)
+
+
 def create_session(user_id: str) -> str:
-    sessions = load_sessions()
     token = secrets.token_urlsafe(32)
-    sessions[token] = {"user_id": user_id, "created_at": utc_now_iso()}
+    created_at = utc_now_iso()
+    if _supabase_enabled():
+        try:
+            create_supabase().table(SUPABASE_SESSIONS_TABLE).insert(
+                {"token": token, "user_id": user_id, "created_at": created_at}
+            ).execute()
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to create session")
+        return token
+    sessions = load_sessions()
+    sessions[token] = {"user_id": user_id, "created_at": created_at}
     save_sessions(sessions)
     return token
 
 
 def revoke_session(token: str) -> None:
+    if _supabase_enabled():
+        try:
+            create_supabase().table(SUPABASE_SESSIONS_TABLE).delete().eq("token", token).execute()
+        except Exception:
+            return
+        return
     sessions = load_sessions()
     if token in sessions:
         sessions.pop(token, None)

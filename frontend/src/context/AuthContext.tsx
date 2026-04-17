@@ -15,6 +15,8 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
   signIn: (identifier: string, password: string) => Promise<void>
+  signInWithInviteCode: (identifier: string, inviteCode: string) => Promise<void>
+  activateCustomerInvite: (identifier: string, inviteCode: string, password: string, name: string) => Promise<void>
   signUp: (
     name: string,
     email: string,
@@ -65,6 +67,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistAuth(payload, setUser)
   }, [])
 
+  const signInWithInviteCode = useCallback(async (identifier: string, inviteCode: string) => {
+    const payload = await postJson<AuthResponse>('/auth/sign-in/invite-code', {
+      identifier,
+      invite_code: inviteCode,
+    })
+    persistAuth(payload, setUser)
+  }, [])
+
+  const activateCustomerInvite = useCallback(async (identifier: string, inviteCode: string, password: string, name: string) => {
+    const payload = await postJson<AuthResponse>('/auth/customer/activate-invite', {
+      identifier,
+      invite_code: inviteCode,
+      password,
+      name,
+    })
+    persistAuth(payload, setUser)
+  }, [])
+
   const signUp = useCallback(
     async (
       name: string,
@@ -96,11 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user),
       isLoading,
       signIn,
+      signInWithInviteCode,
+      activateCustomerInvite,
       signUp,
       signOut,
       refreshUser,
     }),
-    [user, isLoading, signIn, signUp, signOut, refreshUser],
+    [user, isLoading, signIn, signInWithInviteCode, activateCustomerInvite, signUp, signOut, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

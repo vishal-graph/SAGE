@@ -97,6 +97,7 @@ def build_project_summary(project_id: str, payload: dict, existing: dict | None 
         "access_status": access_record.get("status") if access_record else None,
         "customer_user_id": access_record.get("customer_user_id") if access_record else None,
         "vendor_user_id": access_record.get("vendor_user_id") if access_record else None,
+        "invite_code": access_record.get("invite_code") if access_record else None,
     }
 
 

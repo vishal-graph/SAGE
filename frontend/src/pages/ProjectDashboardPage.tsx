@@ -48,6 +48,9 @@ function ProjectRow({
           </p>
         )}
         <p className="mt-1 truncate text-xs uppercase tracking-[0.16em] text-on-surface/35">{project.project_id}</p>
+        {currentRole === 'vendor' && project.invite_code && (
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Customer invite code: {project.invite_code}</p>
+        )}
       </div>
       <div className="flex gap-2">
         <SecondaryButton onClick={() => onOpenCustomer(project.project_id)}>

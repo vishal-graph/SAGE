@@ -84,9 +84,9 @@ Set:
 
 Redis is used for backend caching (for example link previews).
 
-### Supabase tables for project data/chats/stages
+### Supabase tables for auth + project data/chats/stages
 
-The canonical SQL file is `backend/supabase/001_initial_schema.sql` (run it in the Supabase SQL editor). It includes `projects`, `project_summaries`, `project_access`, `project_messages`, `project_stages`, and `request_audit_logs`.
+The canonical SQL file is `backend/supabase/001_initial_schema.sql` (run it in the Supabase SQL editor). It includes `auth_users`, `auth_sessions`, `projects`, `project_summaries`, `project_access`, `project_messages`, `project_stages`, and `request_audit_logs`.
 
 To persist project creation data, chat history, and stage snapshots in Supabase, create these tables:
 
