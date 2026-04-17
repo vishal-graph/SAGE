@@ -59,6 +59,7 @@ export function NewProjectPage() {
   const [floorPlanFile, setFloorPlanFile] = useState<File | null>(null)
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
   const [searchingLocation, setSearchingLocation] = useState(false)
+  const [locatingCurrent, setLocatingCurrent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -85,6 +86,39 @@ export function NewProjectPage() {
     } finally {
       setSearchingLocation(false)
     }
+  }
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported in this browser.')
+      return
+    }
+    setLocatingCurrent(true)
+    setError('')
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+        setManualLat(String(lat))
+        setManualLng(String(lng))
+        try {
+          const suggestion = await getJson<LocationSuggestion>(`/geo/reverse?lat=${lat}&lng=${lng}`)
+          setSelectedLocation(suggestion)
+          setLocationQuery(suggestion.label)
+          setSuggestions([])
+        } catch {
+          setSelectedLocation({ label: `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`, lat, lng })
+          setLocationQuery(`Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`)
+        } finally {
+          setLocatingCurrent(false)
+        }
+      },
+      (geoError) => {
+        setError(geoError.message || 'Unable to fetch current location')
+        setLocatingCurrent(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
   }
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -206,9 +240,14 @@ export function NewProjectPage() {
                 />
               </label>
               <div className="flex items-end">
-                <SecondaryButton className="w-full md:w-auto" onClick={searchLocation} type="button">
-                  {searchingLocation ? 'Searching...' : 'Search location'}
-                </SecondaryButton>
+                <div className="flex w-full gap-2 md:w-auto">
+                  <SecondaryButton className="w-full md:w-auto" onClick={searchLocation} type="button">
+                    {searchingLocation ? 'Searching...' : 'Search location'}
+                  </SecondaryButton>
+                  <SecondaryButton className="w-full md:w-auto" onClick={useCurrentLocation} type="button">
+                    {locatingCurrent ? 'Locating...' : 'Use current location'}
+                  </SecondaryButton>
+                </div>
               </div>
             </div>
 
