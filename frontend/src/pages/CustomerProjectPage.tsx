@@ -247,8 +247,8 @@ export function CustomerProjectPage() {
                 <div className="rounded-2xl bg-surface-container-low/60 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-on-surface/40">Customer</p>
                   <p className="mt-2 text-lg font-semibold">{customer.name || overview?.summary.customer_name || 'Customer'}</p>
-                  <p className="mt-1 text-sm text-on-surface-variant">{customer.email || 'No email added'}</p>
-                  <p className="mt-1 text-sm text-on-surface-variant">{customer.phone || 'No phone added'}</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">{customer.email || overview?.summary.customer_email || 'No email added'}</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">{customer.phone || overview?.summary.customer_phone || 'No phone added'}</p>
                 </div>
                 <div className="rounded-2xl bg-surface-container-low/60 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-on-surface/40">Project details</p>

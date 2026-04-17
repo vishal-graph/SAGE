@@ -92,15 +92,19 @@ def build_access_record(project_id: str, payload: dict[str, Any], owner_user: di
     matched_customer = resolve_customer_from_contact(customer)
     owner_role = str(owner_user.get("role") or "vendor")
     status_value = "active" if matched_customer else "pending"
+    existing_contact = existing.get("customer_contact", {}) if isinstance(existing.get("customer_contact"), dict) else {}
+    customer_name = str(customer.get("name") or existing_contact.get("name") or "")
+    customer_email = normalize_email(str(customer.get("email") or existing_contact.get("email") or ""))
+    customer_phone = normalize_phone(str(customer.get("phone") or existing_contact.get("phone") or ""))
     return {
         "project_id": project_id,
         "owner_user_id": str(owner_user["id"]),
         "vendor_user_id": str(owner_user["id"]) if owner_role == "vendor" else str(existing.get("vendor_user_id") or owner_user["id"]),
         "customer_user_id": str(matched_customer["id"]) if matched_customer else existing.get("customer_user_id"),
         "customer_contact": {
-            "name": str(customer.get("name") or ""),
-            "email": normalize_email(str(customer.get("email") or "")),
-            "phone": normalize_phone(str(customer.get("phone") or "")),
+            "name": customer_name,
+            "email": customer_email,
+            "phone": customer_phone,
         },
         "status": "active" if existing.get("customer_user_id") or matched_customer else status_value,
         "invite_token": existing.get("invite_token") or secrets.token_urlsafe(18),

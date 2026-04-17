@@ -109,6 +109,8 @@ class ProjectSummary(BaseModel):
     room_count: int = 0
     furniture_count: int = 0
     customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    customer_phone: Optional[str] = None
     customer_location: Optional[str] = None
     project_type: Optional[str] = None
     budget_range: Optional[str] = None

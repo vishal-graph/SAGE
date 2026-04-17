@@ -78,6 +78,7 @@ def build_project_summary(project_id: str, payload: dict, existing: dict | None 
     intake = meta.get("project_intake", {}) if isinstance(meta.get("project_intake"), dict) else {}
     customer = intake.get("customer", {}) if isinstance(intake.get("customer"), dict) else {}
     location = intake.get("location", {}) if isinstance(intake.get("location"), dict) else {}
+    access_contact = access_record.get("customer_contact", {}) if isinstance(access_record, dict) and isinstance(access_record.get("customer_contact"), dict) else {}
     geometry = payload.get("geometry", {}) if isinstance(payload.get("geometry"), dict) else {}
     furniture = payload.get("furniture", [])
     image = payload.get("image", {}) if isinstance(payload.get("image"), dict) else {}
@@ -90,10 +91,12 @@ def build_project_summary(project_id: str, payload: dict, existing: dict | None 
         "image_filename": image.get("filename"),
         "room_count": len(geometry.get("rooms", [])) if isinstance(geometry.get("rooms"), list) else 0,
         "furniture_count": len(furniture) if isinstance(furniture, list) else 0,
-        "customer_name": customer.get("name"),
-        "customer_location": location.get("label") or location.get("query"),
-        "project_type": intake.get("project_type"),
-        "budget_range": intake.get("budget_range"),
+        "customer_name": customer.get("name") or access_contact.get("name") or (existing.get("customer_name") if existing else None),
+        "customer_email": customer.get("email") or access_contact.get("email") or (existing.get("customer_email") if existing else None),
+        "customer_phone": customer.get("phone") or access_contact.get("phone") or (existing.get("customer_phone") if existing else None),
+        "customer_location": location.get("label") or location.get("query") or (existing.get("customer_location") if existing else None),
+        "project_type": intake.get("project_type") or (existing.get("project_type") if existing else None),
+        "budget_range": intake.get("budget_range") or (existing.get("budget_range") if existing else None),
         "access_status": access_record.get("status") if access_record else None,
         "customer_user_id": access_record.get("customer_user_id") if access_record else None,
         "vendor_user_id": access_record.get("vendor_user_id") if access_record else None,
@@ -164,6 +167,11 @@ def dashboard_summary(user=Depends(require_user)) -> DashboardSummaryResponse:
                     merged.setdefault("access_status", access_record.get("status"))
                     merged.setdefault("customer_user_id", access_record.get("customer_user_id"))
                     merged.setdefault("vendor_user_id", access_record.get("vendor_user_id"))
+                    contact = access_record.get("customer_contact", {}) if isinstance(access_record.get("customer_contact"), dict) else {}
+                    merged.setdefault("customer_name", contact.get("name"))
+                    merged.setdefault("customer_email", contact.get("email"))
+                    merged.setdefault("customer_phone", contact.get("phone"))
+                    merged.setdefault("invite_code", access_record.get("invite_code"))
                 raw_projects.append(merged)
     else:
         index = load_index()
@@ -178,6 +186,11 @@ def dashboard_summary(user=Depends(require_user)) -> DashboardSummaryResponse:
                         merged.setdefault("access_status", access_record.get("status"))
                         merged.setdefault("customer_user_id", access_record.get("customer_user_id"))
                         merged.setdefault("vendor_user_id", access_record.get("vendor_user_id"))
+                        contact = access_record.get("customer_contact", {}) if isinstance(access_record.get("customer_contact"), dict) else {}
+                        merged.setdefault("customer_name", contact.get("name"))
+                        merged.setdefault("customer_email", contact.get("email"))
+                        merged.setdefault("customer_phone", contact.get("phone"))
+                        merged.setdefault("invite_code", access_record.get("invite_code"))
                     raw_projects.append(merged)
     projects = [
         ProjectSummary(**value)

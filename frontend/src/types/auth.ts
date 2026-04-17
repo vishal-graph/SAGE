@@ -21,6 +21,8 @@ export interface ProjectSummary {
   room_count: number
   furniture_count: number
   customer_name?: string | null
+  customer_email?: string | null
+  customer_phone?: string | null
   customer_location?: string | null
   project_type?: string | null
   budget_range?: string | null
