@@ -201,29 +201,28 @@ export function CustomerProjectPage() {
   }, [user, customer.name])
 
   return (
-    <div className="h-dvh overflow-hidden spatial-grid-bg px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex h-full max-w-7xl flex-col gap-6 overflow-hidden">
-        <header className="floating-card flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="h-dvh overflow-hidden spatial-grid-bg px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 sm:gap-6 overflow-hidden">
+        <header className="floating-card flex flex-col gap-4 p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Customer Project Page</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">{overview?.summary.name ?? 'Project'}</h1>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{overview?.summary.name ?? 'Project'}</h1>
             <p className="mt-2 text-sm text-on-surface-variant">
               Live discussion between vendor and customer with project overview always visible.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <SecondaryButton onClick={() => navigate('/dashboard')}>Back to dashboard</SecondaryButton>
-            {user?.role === 'vendor' && (
-              <PrimaryButton onClick={() => navigate(`/editor?project=${encodeURIComponent(projectId)}`)}>Open editor</PrimaryButton>
-            )}
+          <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3">
+            <SecondaryButton className="w-full sm:w-auto" onClick={() => navigate('/dashboard')}>
+              Back to dashboard
+            </SecondaryButton>
           </div>
         </header>
 
         {error && <div className="rounded-2xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
         <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <GlassCard className="space-y-5 overflow-hidden p-6 lg:sticky lg:top-6 lg:self-start" hoverLift={false}>
-            <div className="flex items-center justify-between gap-3">
+          <GlassCard className="space-y-5 overflow-hidden p-4 sm:p-6 lg:sticky lg:top-6 lg:self-start" hoverLift={false}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold">Overview</h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${
@@ -291,12 +290,12 @@ export function CustomerProjectPage() {
           </GlassCard>
 
           <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-0" hoverLift={false}>
-            <div className="border-b border-outline-variant/20 px-6 py-4">
+            <div className="border-b border-outline-variant/20 px-4 py-4 sm:px-6">
               <h2 className="text-xl font-semibold">{counterpartLabel} chat</h2>
               <p className="mt-1 text-sm text-on-surface-variant">Discord-style live updates for this project conversation.</p>
             </div>
 
-            <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 py-4">
+            <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-6">
               {messages.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-surface-container-low/40 p-6 text-sm text-on-surface-variant">
                   No messages yet. Start the conversation.
@@ -308,7 +307,7 @@ export function CustomerProjectPage() {
                   const preview = linkPreviews[message.id]
                   return (
                     <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${isOwn ? 'bg-primary text-white' : 'bg-surface-container-low text-on-surface'}`}>
+                      <div className={`max-w-[92%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${isOwn ? 'bg-primary text-white' : 'bg-surface-container-low text-on-surface'}`}>
                         <div className={`mb-1 flex items-center gap-2 text-xs ${isOwn ? 'text-white/80' : 'text-on-surface/50'}`}>
                           <span className="font-semibold">{message.sender_name}</span>
                           <span className="uppercase tracking-[0.14em]">{message.sender_role}</span>
@@ -377,7 +376,7 @@ export function CustomerProjectPage() {
               )}
             </div>
 
-            <form onSubmit={onSend} className="border-t border-outline-variant/20 px-6 py-4">
+            <form onSubmit={onSend} className="border-t border-outline-variant/20 px-4 py-4 sm:px-6">
               <div className="space-y-3">
                 <textarea
                   value={draft}
@@ -385,19 +384,19 @@ export function CustomerProjectPage() {
                   className="glass-input min-h-24 w-full"
                   placeholder="Type a message..."
                 />
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                   <input
                     ref={fileRef}
                     type="file"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-                    className="glass-input max-w-sm"
+                    className="glass-input w-full sm:max-w-sm"
                   />
-                  <SecondaryButton type="button" onClick={onUpload} disabled={!selectedFile || uploading}>
+                  <SecondaryButton className="w-full sm:w-auto" type="button" onClick={onUpload} disabled={!selectedFile || uploading}>
                     {uploading ? 'Uploading...' : 'Upload file'}
                   </SecondaryButton>
                   {selectedFile && <span className="text-sm text-on-surface-variant">{selectedFile.name}</span>}
-                  <div className="ml-auto flex items-end">
-                    <PrimaryButton type="submit" disabled={sending || !draft.trim()}>
+                  <div className="flex items-end sm:ml-auto">
+                    <PrimaryButton className="w-full sm:w-auto" type="submit" disabled={sending || !draft.trim()}>
                       {sending ? 'Sending...' : 'Send'}
                     </PrimaryButton>
                   </div>

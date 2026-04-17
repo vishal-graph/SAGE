@@ -29,11 +29,13 @@ function Furniture3DInner({
   selected,
   gridSizeFt,
   pxPerFt,
+  readOnly = false,
 }: {
   item: FurnitureItem
   selected: boolean
   gridSizeFt: number
   pxPerFt: number | null
+  readOnly?: boolean
 }) {
   const updateFurniture = useSigeStore((s) => s.updateFurniture)
   const setSelected = useSigeStore((s) => s.setSelectedFurnitureId)
@@ -80,6 +82,7 @@ function Furniture3DInner({
   const glbUrl = getKenneyModelUrl(item.type)
 
   const onPointerDownBody = (e: ThreeEvent<PointerEvent>) => {
+    if (readOnly) return
     e.stopPropagation()
     setSelected(item.id)
     setOrbit(false)
@@ -153,6 +156,7 @@ function Furniture3DInner({
   }
 
   const onPointerDownResize = (e: ThreeEvent<PointerEvent>, kind: ResizeKind) => {
+    if (readOnly) return
     e.stopPropagation()
     setSelected(item.id)
     setOrbit(false)
@@ -275,7 +279,7 @@ function Furniture3DInner({
       rotation={[0, rotYRad, 0]}
       onClick={(e) => e.stopPropagation()}
     >
-      <group onPointerDown={onPointerDownBody}>
+      <group onPointerDown={readOnly ? undefined : onPointerDownBody}>
         {glbUrl ? (
           <GlbErrorBoundary fallback={fallback}>
             <Suspense fallback={fallback}>
@@ -287,7 +291,7 @@ function Furniture3DInner({
         )}
       </group>
 
-      {selected && (
+      {!readOnly && selected && (
         <group position={[0, 0.02, 0]}>
           <mesh>
             <boxGeometry args={[wFt + 0.06, 0.04, dFt + 0.06]} />
@@ -297,7 +301,7 @@ function Furniture3DInner({
         </group>
       )}
 
-      {selected && (
+      {!readOnly && selected && (
         <>
           <mesh
             position={[wFt / 2 + handleThickness / 2, handleY, 0]}

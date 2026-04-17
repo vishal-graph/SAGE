@@ -22,6 +22,7 @@ function SceneContent({
   imageNaturalWidth,
   imageNaturalHeight,
   showFloorPlanImage,
+  readOnly = false,
 }: {
   widthFt: number
   depthFt: number
@@ -32,6 +33,7 @@ function SceneContent({
   imageNaturalWidth: number
   imageNaturalHeight: number
   showFloorPlanImage: boolean
+  readOnly?: boolean
 }) {
   const [orbitEnabled, setOrbitEnabled] = useState(true)
   const furniture = useSigeStore((s) => s.furniture)
@@ -121,6 +123,7 @@ function SceneContent({
         cellSizePx={cellSizePx}
         gridInputs={gridInputs}
         planScaleFactor={furniturePlanScaleFactor}
+        readOnly={readOnly}
       />
 
       <FloorPlanGrids3D
@@ -152,16 +155,17 @@ function SceneContent({
         <Furniture3D
           key={f.id}
           item={f}
-          selected={f.id === selectedId}
+          selected={!readOnly && f.id === selectedId}
           gridSizeFt={gridSizeFt}
           pxPerFt={pxPerFt}
+          readOnly={readOnly}
         />
       ))}
     </Floor3DOrbitContext.Provider>
   )
 }
 
-export function Floor3DCanvas({ className }: { className?: string }) {
+export function Floor3DCanvas({ className, readOnly = false }: { className?: string; readOnly?: boolean }) {
   const derived = useDerivedGrid()
   const gridSizeFt = useSigeStore((s) => s.gridSizeFt)
   const scale = useSigeStore((s) => s.scale)
@@ -196,7 +200,7 @@ export function Floor3DCanvas({ className }: { className?: string }) {
   const pxPerFt = scale?.pxPerFt ?? null
   const camDist = Math.max(14, Math.max(size.widthFt, size.depthFt) * 1.15)
 
-  const placeCursor = tool === 'placeFurniture' && pendingFurniturePreset != null
+  const placeCursor = !readOnly && tool === 'placeFurniture' && pendingFurniturePreset != null
 
   return (
     <div
@@ -235,6 +239,7 @@ export function Floor3DCanvas({ className }: { className?: string }) {
           imageNaturalWidth={imageNaturalWidth}
           imageNaturalHeight={imageNaturalHeight}
           showFloorPlanImage={showFloorPlanImage}
+          readOnly={readOnly}
         />
       </Canvas>
     </div>

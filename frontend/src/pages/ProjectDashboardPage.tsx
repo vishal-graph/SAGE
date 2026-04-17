@@ -52,11 +52,15 @@ function ProjectRow({
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Customer invite code: {project.invite_code}</p>
         )}
       </div>
-      <div className="flex gap-2">
-        <SecondaryButton onClick={() => onOpenCustomer(project.project_id)}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+        <SecondaryButton className="w-full sm:w-auto" onClick={() => onOpenCustomer(project.project_id)}>
           {currentRole === 'customer' ? 'Open project' : 'Customer page'}
         </SecondaryButton>
-        {currentRole !== 'customer' && <SecondaryButton onClick={() => onOpen(project.project_id)}>Open in editor</SecondaryButton>}
+        {currentRole !== 'customer' && (
+          <SecondaryButton className="w-full sm:w-auto" onClick={() => onOpen(project.project_id)}>
+            Open in editor
+          </SecondaryButton>
+        )}
       </div>
     </div>
   )
@@ -109,22 +113,26 @@ export function ProjectDashboardPage() {
   }
 
   return (
-    <div className="h-dvh overflow-y-auto spatial-grid-bg px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="floating-card flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="h-dvh overflow-y-auto spatial-grid-bg px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:gap-6">
+        <header className="floating-card flex flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Project Dashboard</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">Welcome, {user?.name ?? 'Planner'}</h1>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Welcome, {user?.name ?? 'Planner'}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
               Manage your recent SIGE workspaces, continue saved projects, or start a fresh planning session.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <SecondaryButton onClick={() => navigate(user?.role === 'customer' ? '/projects/new' : '/editor')}>
+          <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3">
+            <SecondaryButton className="w-full sm:w-auto" onClick={() => navigate(user?.role === 'customer' ? '/projects/new' : '/editor')}>
               {user?.role === 'customer' ? 'New request' : 'Open editor'}
             </SecondaryButton>
-            <PrimaryButton onClick={startNewProject}>New project</PrimaryButton>
-            <SecondaryButton onClick={() => void handleSignOut()}>Sign out</SecondaryButton>
+            <PrimaryButton className="w-full sm:w-auto" onClick={startNewProject}>
+              New project
+            </PrimaryButton>
+            <SecondaryButton className="w-full sm:w-auto" onClick={() => void handleSignOut()}>
+              Sign out
+            </SecondaryButton>
           </div>
         </header>
 

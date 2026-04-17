@@ -23,6 +23,7 @@ export function Floor3DInteractionPlane({
   cellSizePx,
   gridInputs,
   planScaleFactor,
+  readOnly = false,
 }: {
   widthFt: number
   depthFt: number
@@ -32,6 +33,7 @@ export function Floor3DInteractionPlane({
   cellSizePx: number
   gridInputs: GridInputs | null
   planScaleFactor?: number
+  readOnly?: boolean
 }) {
   const { camera, gl } = useThree()
   const tool = useSigeStore((s) => s.tool)
@@ -56,6 +58,7 @@ export function Floor3DInteractionPlane({
       renderOrder={8}
       onClick={(e) => {
         e.stopPropagation()
+        if (readOnly) return
         const hit = new THREE.Vector3()
         if (!intersectFloorXZ(e.nativeEvent.clientX, e.nativeEvent.clientY, camera, gl.domElement, hit)) {
           return

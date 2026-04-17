@@ -42,9 +42,9 @@ export function SignUpPage() {
       altHref="/sign-in"
       altLabel="Sign in"
     >
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Get started</h2>
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Get started</h2>
           <p className="mt-2 text-sm text-on-surface-variant">Create an account to organize projects before entering the editor.</p>
         </div>
 

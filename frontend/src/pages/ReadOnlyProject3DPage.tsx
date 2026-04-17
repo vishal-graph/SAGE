@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getJson } from '../api/client'
 import { Floor3DCanvas } from '../components/Floor3D/Floor3DCanvas'
-import { PrimaryButton } from '../components/ui/PrimaryButton'
 import { SecondaryButton } from '../components/ui/SecondaryButton'
 import { useSigeStore } from '../store/useSigeStore'
 import type { SharedReadonlyVersionResponse } from '../types/auth'
@@ -54,12 +53,14 @@ export function ReadOnlyProject3DPage() {
             <p className="mt-1 text-sm text-on-surface-variant">
               {versionId ? `Version ${versionId} · Shared ${new Date(sharedAt).toLocaleString()}` : 'Loading shared version'}
             </p>
+            <p className="mt-1 text-xs text-on-surface/60">
+              This view is read-only. Use feedback chat to send suggestions to the vendor.
+            </p>
           </div>
           <div className="flex gap-2">
-            <SecondaryButton onClick={() => navigate(-1)}>Back</SecondaryButton>
-            <PrimaryButton onClick={() => navigate(`/projects/${encodeURIComponent(projectId)}/customer`)}>
-              Open chat
-            </PrimaryButton>
+            <SecondaryButton onClick={() => navigate(`/projects/${encodeURIComponent(projectId)}/customer`)}>
+              Give feedback in chat
+            </SecondaryButton>
           </div>
         </header>
 
@@ -70,7 +71,7 @@ export function ReadOnlyProject3DPage() {
             {loading ? (
               <div className="flex h-full items-center justify-center text-sm text-on-surface-variant">Loading 3D view...</div>
             ) : (
-              <Floor3DCanvas className="h-full w-full" />
+              <Floor3DCanvas className="h-full w-full" readOnly />
             )}
           </div>
         )}

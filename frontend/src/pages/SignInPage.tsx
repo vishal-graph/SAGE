@@ -64,9 +64,9 @@ export function SignInPage() {
       altHref="/sign-up"
       altLabel="Create one"
     >
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Welcome back</h2>
           <p className="mt-2 text-sm text-on-surface-variant">Use your SIGE account to continue where you left off.</p>
         </div>
 
@@ -152,7 +152,7 @@ export function SignInPage() {
           </PrimaryButton>
         </form>
 
-        <div className="rounded-2xl border border-outline-variant/25 bg-surface-container-low/50 p-4">
+        <div className="rounded-2xl border border-outline-variant/25 bg-surface-container-low/50 p-3.5 sm:p-4">
           <p className="text-sm font-semibold">Customer first-time access</p>
           <p className="mt-1 text-xs text-on-surface-variant">
             Ask your vendor for the 6-digit invite code, then create your password once.
