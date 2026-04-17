@@ -5,7 +5,14 @@ import { GlassCard } from '../components/ui/GlassCard'
 import { PrimaryButton } from '../components/ui/PrimaryButton'
 import { SecondaryButton } from '../components/ui/SecondaryButton'
 import { useAuth } from '../context/AuthContext'
-import type { ChatMessage, ChatMessageListResponse, LinkPreview, LinkPreviewResponse, ProjectOverviewResponse } from '../types/auth'
+import type {
+  ChatMessage,
+  ChatMessageListResponse,
+  LinkPreview,
+  LinkPreviewResponse,
+  ProjectOverviewResponse,
+  SharedReadonlyVersionResponse,
+} from '../types/auth'
 
 function formatDate(value?: string | null) {
   if (!value) return 'No timestamp'
@@ -57,6 +64,7 @@ export function CustomerProjectPage() {
   const [connectionState, setConnectionState] = useState<'connecting' | 'live' | 'offline'>('connecting')
   const [error, setError] = useState('')
   const [linkPreviews, setLinkPreviews] = useState<Record<string, LinkPreview | null>>({})
+  const [sharedReadonlyVersion, setSharedReadonlyVersion] = useState<SharedReadonlyVersionResponse | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
@@ -77,6 +85,12 @@ export function CustomerProjectPage() {
         if (!active) return
         setOverview(overviewRes)
         setMessages(messagesRes.messages)
+        try {
+          const sharedRes = await getJson<SharedReadonlyVersionResponse>(`/project/${projectId}/shared-readonly`)
+          if (active) setSharedReadonlyVersion(sharedRes)
+        } catch {
+          if (active) setSharedReadonlyVersion(null)
+        }
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load project')
       } finally {
@@ -247,6 +261,25 @@ export function CustomerProjectPage() {
                 <div className="rounded-2xl bg-surface-container-low/60 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-on-surface/40">Notes</p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-on-surface-variant">{notes || 'No notes yet.'}</p>
+                </div>
+                <div className="rounded-2xl bg-surface-container-low/60 p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-on-surface/40">Readonly 3D version</p>
+                  {sharedReadonlyVersion ? (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-sm text-on-surface-variant">
+                        Shared {formatDate(sharedReadonlyVersion.shared_at)}
+                      </p>
+                      <SecondaryButton
+                        onClick={() => navigate(`/projects/${encodeURIComponent(projectId)}/read-only-3d`)}
+                      >
+                        Open readonly 3D
+                      </SecondaryButton>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      Vendor has not shared a readonly 3D version yet.
+                    </p>
+                  )}
                 </div>
               </div>
             )}

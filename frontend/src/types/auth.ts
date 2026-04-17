@@ -41,6 +41,20 @@ export interface ProjectOverviewResponse {
   payload: Record<string, unknown>
 }
 
+export interface ShareReadonlyResponse {
+  project_id: string
+  version_id: string
+  shared_at: string
+}
+
+export interface SharedReadonlyVersionResponse {
+  project_id: string
+  version_id: string
+  shared_at: string
+  shared_by_user_id: string
+  payload: Record<string, unknown>
+}
+
 export interface ChatAttachment {
   name: string
   content_type: string

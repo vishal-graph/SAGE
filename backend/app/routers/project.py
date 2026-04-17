@@ -43,6 +43,20 @@ class NewProjectResponse(BaseModel):
     project_id: str
 
 
+class ShareReadonlyResponse(BaseModel):
+    project_id: str
+    version_id: str
+    shared_at: str
+
+
+class SharedReadonlyVersionResponse(BaseModel):
+    project_id: str
+    version_id: str
+    shared_at: str
+    shared_by_user_id: str
+    payload: dict
+
+
 def sanitize_project_id(project_id: str) -> str:
     return "".join(c for c in project_id if c.isalnum() or c in "-_")
 
@@ -182,3 +196,47 @@ def project_overview(project_id: str, user=Depends(require_user)) -> ProjectOver
     access_record = require_project_access(user, sanitize_project_id(project_id))
     summary = ProjectSummary(**build_project_summary(sanitize_project_id(project_id), payload, access_record=access_record))
     return ProjectOverviewResponse(summary=summary, payload=payload)
+
+
+@router.post("/{project_id}/share-readonly", response_model=ShareReadonlyResponse)
+def share_readonly_version(project_id: str, user=Depends(require_user)) -> ShareReadonlyResponse:
+    safe_id = sanitize_project_id(project_id)
+    payload = load_project(safe_id, user)
+    access_record = require_project_access(user, safe_id)
+    if str(user.get("role") or "") != "vendor" and str(user.get("id") or "") != str(access_record.get("owner_user_id") or ""):
+        raise HTTPException(status_code=403, detail="Only vendors can share readonly versions")
+
+    version_id = str(uuid.uuid4())
+    shared_at = utc_now_iso()
+    access_index = load_access_index()
+    current_record = access_index.get(safe_id) or access_record or {}
+    current_record["shared_readonly"] = {
+        "version_id": version_id,
+        "shared_at": shared_at,
+        "shared_by_user_id": str(user.get("id") or ""),
+        "payload": payload,
+    }
+    current_record["updated_at"] = shared_at
+    access_index[safe_id] = current_record
+    save_access_index(access_index)
+    return ShareReadonlyResponse(project_id=safe_id, version_id=version_id, shared_at=shared_at)
+
+
+@router.get("/{project_id}/shared-readonly", response_model=SharedReadonlyVersionResponse)
+def get_shared_readonly_version(project_id: str, user=Depends(require_user)) -> SharedReadonlyVersionResponse:
+    safe_id = sanitize_project_id(project_id)
+    require_project_access(user, safe_id)
+    access_record = get_access_record(safe_id) or {}
+    shared = access_record.get("shared_readonly")
+    if not isinstance(shared, dict):
+        raise HTTPException(status_code=404, detail="Readonly version not shared yet")
+    payload = shared.get("payload")
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=404, detail="Readonly version payload not available")
+    return SharedReadonlyVersionResponse(
+        project_id=safe_id,
+        version_id=str(shared.get("version_id") or ""),
+        shared_at=str(shared.get("shared_at") or ""),
+        shared_by_user_id=str(shared.get("shared_by_user_id") or ""),
+        payload=payload,
+    )

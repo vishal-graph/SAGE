@@ -19,14 +19,17 @@ import { PrimaryButton } from './ui/PrimaryButton'
 import { SecondaryButton } from './ui/SecondaryButton'
 import { AiCleanPlanLoadingOverlay } from './ui/AiCleanPlanLoadingOverlay'
 import { MaterialIcon } from './ui/MaterialIcon'
+import { useAuth } from '../context/AuthContext'
 import { resetSigeWorkspace, useSigeStore } from '../store/useSigeStore'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { postJson, getJson } from '../api/client'
+import type { ShareReadonlyResponse } from '../types/auth'
 import { pdfFirstPageToDataUrl } from '../utils/pdf'
 export function SigeApp() {
   useKeyboardShortcuts()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { user } = useAuth()
 
   const [roomDraft, setRoomDraft] = useState<[number, number][]>([])
   const [calModalOpen, setCalModalOpen] = useState(false)
@@ -34,6 +37,7 @@ export function SigeApp() {
   const [mobilePanelsOpen, setMobilePanelsOpen] = useState(false)
   const [projectLoadError, setProjectLoadError] = useState('')
   const [loadingProject, setLoadingProject] = useState(false)
+  const [sharingReadonly, setSharingReadonly] = useState(false)
   const floorViewMode = useSigeStore((s) => s.floorViewMode)
   const setFloorViewMode = useSigeStore((s) => s.setFloorViewMode)
   const rotateFloorPlan90 = useSigeStore((s) => s.rotateFloorPlan90)
@@ -187,6 +191,23 @@ export function SigeApp() {
     setProjectId(id)
   }
 
+  const shareReadonlyVersion = async () => {
+    if (!projectId) {
+      alert('Save this project first to share a readonly version.')
+      return
+    }
+    setSharingReadonly(true)
+    try {
+      await saveServer()
+      const result = await postJson<ShareReadonlyResponse>(`/project/${encodeURIComponent(projectId)}/share-readonly`, {})
+      alert(`Readonly version shared.\nVersion: ${result.version_id}\nCustomers can view it from project chat page.`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Unable to share readonly version')
+    } finally {
+      setSharingReadonly(false)
+    }
+  }
+
   const triggerUpload = () => fileRef.current?.click()
 
   useEffect(() => {
@@ -250,8 +271,23 @@ export function SigeApp() {
         onSaveServer={() => void saveServer()}
         onLoadServer={() => void loadServer()}
         onDashboardClick={() => navigate('/dashboard')}
+        onShareReadonlyClick={() => void shareReadonlyVersion()}
+        showShareReadonlyButton={user?.role === 'vendor'}
+        onMessagesClick={() => {
+          if (!projectId) {
+            alert('Save this project first to open messages.')
+            return
+          }
+          navigate(`/projects/${encodeURIComponent(projectId)}/customer`)
+        }}
+        showMessagesButton={user?.role === 'vendor'}
         analysisControls={<AnalysisTopBarButtons />}
       />
+      {sharingReadonly && (
+        <div className="fixed right-6 top-20 z-[60] rounded-xl border border-outline-variant/25 bg-white/95 px-4 py-2 text-sm text-on-surface shadow-[var(--shadow-ambient)]">
+          Sharing readonly version...
+        </div>
+      )}
 
       <LeftToolDock />
 

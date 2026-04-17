@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { CustomerProjectPage } from './pages/CustomerProjectPage'
 import { NewProjectPage } from './pages/NewProjectPage'
 import { ProjectDashboardPage } from './pages/ProjectDashboardPage'
+import { ReadOnlyProject3DPage } from './pages/ReadOnlyProject3DPage'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
 
@@ -81,6 +82,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CustomerProjectPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/:projectId/read-only-3d"
+        element={
+          <ProtectedRoute>
+            <ReadOnlyProject3DPage />
           </ProtectedRoute>
         }
       />

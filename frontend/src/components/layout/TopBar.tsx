@@ -8,6 +8,10 @@ interface TopBarProps {
   onSaveServer: () => void
   onLoadServer: () => void
   onDashboardClick?: () => void
+  onMessagesClick?: () => void
+  showMessagesButton?: boolean
+  onShareReadonlyClick?: () => void
+  showShareReadonlyButton?: boolean
   analysisControls?: ReactNode
 }
 
@@ -17,6 +21,10 @@ export function TopBar({
   onSaveServer,
   onLoadServer,
   onDashboardClick,
+  onMessagesClick,
+  showMessagesButton,
+  onShareReadonlyClick,
+  showShareReadonlyButton,
   analysisControls,
 }: TopBarProps) {
   const tbSecondary =
@@ -78,10 +86,22 @@ export function TopBar({
               <MaterialIcon name="save" className="!text-lg leading-none text-on-surface-variant xl:!hidden" />
               <span className="hidden xl:inline">Save</span>
             </SecondaryButton>
+            {showShareReadonlyButton && onShareReadonlyClick && (
+              <SecondaryButton type="button" className={`${tbSecondary} hidden sm:inline-flex`} onClick={onShareReadonlyClick} title="Save and share readonly 3D">
+                <MaterialIcon name="share" className="!text-lg leading-none text-on-surface-variant xl:!hidden" />
+                <span className="hidden xl:inline">Save & Share</span>
+              </SecondaryButton>
+            )}
             <SecondaryButton type="button" className={`${tbSecondary} hidden sm:inline-flex`} onClick={onLoadServer} title="Load">
               <MaterialIcon name="folder_open" className="!text-lg leading-none text-on-surface-variant xl:!hidden" />
               <span className="hidden xl:inline">Load</span>
             </SecondaryButton>
+            {showMessagesButton && onMessagesClick && (
+              <SecondaryButton type="button" className={`${tbSecondary} hidden sm:inline-flex`} onClick={onMessagesClick} title="Messages">
+                <MaterialIcon name="chat" className="!text-lg leading-none text-on-surface-variant xl:!hidden" />
+                <span className="hidden xl:inline">Messages</span>
+              </SecondaryButton>
+            )}
             <span className={tbRule} aria-hidden />
             <button
               type="button"
