@@ -8,6 +8,7 @@ from app.services.auth import (
     create_session,
     create_user,
     find_user_by_identifier,
+    find_users_by_identifier,
     hash_password,
     get_token_from_header,
     normalize_email,
@@ -43,7 +44,14 @@ def sign_up(body: SignUpRequest) -> AuthResponse:
 
 @router.post("/sign-in", response_model=AuthResponse)
 def sign_in(body: SignInRequest) -> AuthResponse:
-    user = find_user_by_identifier(body.identifier)
+    user = find_user_by_identifier(body.identifier, body.role)
+    if not user and body.role is None:
+        matches = find_users_by_identifier(body.identifier)
+        if len(matches) > 1:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Multiple accounts found. Please choose user type and sign in again",
+            )
     if not user or not verify_password(body.password, str(user.get("password_hash", ""))):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email/phone or password")
     token = create_session(str(user["id"]))
@@ -68,7 +76,7 @@ def sign_in_with_invite_code(body: InviteCodeSignInRequest) -> AuthResponse:
             detail="Invite code does not match the customer contact for this project",
         )
 
-    user = find_user_by_identifier(body.identifier)
+    user = find_user_by_identifier(body.identifier, "customer")
     if not user:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -106,13 +114,11 @@ def activate_customer_invite(body: CustomerInviteActivateRequest) -> AuthRespons
             detail="Invite code does not match the customer contact for this project",
         )
 
-    user = find_user_by_identifier(body.identifier)
+    user = find_user_by_identifier(body.identifier, "customer")
     if user:
         user["password_hash"] = hash_password(body.password)
         if body.name.strip():
             user["name"] = body.name.strip()
-        if str(user.get("role") or "") != "customer":
-            user["role"] = "customer"
         save_user(user)
     else:
         email = identifier_email or f"{identifier_phone.lstrip('+')}@customer.local"

@@ -10,6 +10,7 @@ export function SignInPage() {
   const location = useLocation()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordRole, setPasswordRole] = useState<'vendor' | 'customer' | 'supplier'>('vendor')
   const [inviteSignInCode, setInviteSignInCode] = useState('')
   const [signInMode, setSignInMode] = useState<'password' | 'invite'>('password')
   const [inviteName, setInviteName] = useState('')
@@ -29,7 +30,7 @@ export function SignInPage() {
     setSubmitting(true)
     try {
       if (signInMode === 'password') {
-        await signIn(identifier, password)
+        await signIn(identifier, password, passwordRole)
       } else {
         await signInWithInviteCode(identifier, inviteSignInCode.trim().toUpperCase())
       }
@@ -103,6 +104,17 @@ export function SignInPage() {
               required
             />
           </label>
+
+          {signInMode === 'password' && (
+            <label className="block space-y-2">
+              <span className="text-sm font-medium">User type</span>
+              <select value={passwordRole} onChange={(e) => setPasswordRole(e.target.value as typeof passwordRole)} className="glass-input">
+                <option value="vendor">Vendor</option>
+                <option value="customer">Customer</option>
+                <option value="supplier">Supplier</option>
+              </select>
+            </label>
+          )}
 
           {signInMode === 'password' ? (
             <label className="block space-y-2">

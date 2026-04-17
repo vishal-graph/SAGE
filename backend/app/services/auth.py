@@ -183,25 +183,47 @@ def to_user_summary(user: Dict[str, Any]) -> UserSummary:
     )
 
 
-def find_user_by_email(email: str) -> Dict[str, Any] | None:
+def find_user_by_email(email: str, role: str | None = None) -> Dict[str, Any] | None:
     target = normalize_email(email)
     for user in load_users():
+        if role and str(user.get("role") or "") != role:
+            continue
         if str(user.get("email", "")).lower() == target:
             return user
     return None
 
 
-def find_user_by_phone(phone: str) -> Dict[str, Any] | None:
+def find_user_by_phone(phone: str, role: str | None = None) -> Dict[str, Any] | None:
     target = normalize_phone(phone)
     for user in load_users():
+        if role and str(user.get("role") or "") != role:
+            continue
         if normalize_phone(str(user.get("phone", ""))) == target:
             return user
     return None
 
 
-def find_user_by_identifier(identifier: str) -> Dict[str, Any] | None:
+def find_users_by_identifier(identifier: str) -> list[Dict[str, Any]]:
     raw = identifier.strip()
-    return find_user_by_email(raw) or find_user_by_phone(raw)
+    target_email = normalize_email(raw)
+    target_phone = normalize_phone(raw)
+    matches: list[Dict[str, Any]] = []
+    for user in load_users():
+        user_email = normalize_email(str(user.get("email", "")))
+        user_phone = normalize_phone(str(user.get("phone", "")))
+        if (target_email and user_email == target_email) or (target_phone and user_phone == target_phone):
+            matches.append(user)
+    return matches
+
+
+def find_user_by_identifier(identifier: str, role: str | None = None) -> Dict[str, Any] | None:
+    matches = find_users_by_identifier(identifier)
+    if role:
+        for user in matches:
+            if str(user.get("role") or "") == role:
+                return user
+        return None
+    return matches[0] if matches else None
 
 
 def find_user_by_id(user_id: str) -> Dict[str, Any] | None:

@@ -80,7 +80,7 @@ class SignUpRequest(BaseModel):
 
 
 class SignInRequest(AuthCredentials):
-    pass
+    role: Optional[Literal["vendor", "customer", "supplier"]] = None
 
 
 class CustomerInviteActivateRequest(BaseModel):

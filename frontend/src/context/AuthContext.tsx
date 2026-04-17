@@ -14,7 +14,7 @@ interface AuthContextValue {
   user: UserSummary | null
   isAuthenticated: boolean
   isLoading: boolean
-  signIn: (identifier: string, password: string) => Promise<void>
+  signIn: (identifier: string, password: string, role?: 'vendor' | 'customer' | 'supplier') => Promise<void>
   signInWithInviteCode: (identifier: string, inviteCode: string) => Promise<void>
   activateCustomerInvite: (identifier: string, inviteCode: string, password: string, name: string) => Promise<void>
   signUp: (
@@ -62,8 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refreshUser()
   }, [refreshUser])
 
-  const signIn = useCallback(async (identifier: string, password: string) => {
-    const payload = await postJson<AuthResponse>('/auth/sign-in', { identifier, password })
+  const signIn = useCallback(async (identifier: string, password: string, role?: 'vendor' | 'customer' | 'supplier') => {
+    const payload = await postJson<AuthResponse>('/auth/sign-in', { identifier, password, role })
     persistAuth(payload, setUser)
   }, [])
 
