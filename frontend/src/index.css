@@ -1,0 +1,171 @@
+@import 'tailwindcss';
+
+/* Spatial Glass — tokens from stitch/spatial_glass/DESIGN.md + stitch HTML */
+@theme {
+  --color-on-surface: #1a1c1d;
+  --color-on-surface-variant: #414755;
+  --color-surface: #f9f9fb;
+  --color-surface-container: #eeeef0;
+  --color-surface-container-low: #f3f3f5;
+  --color-surface-container-high: #e8e8ea;
+  --color-surface-container-highest: #e2e2e4;
+  --color-surface-container-lowest: #ffffff;
+  --color-primary: #0058bc;
+  --color-primary-container: #0070eb;
+  --color-secondary: #405e96;
+  --color-outline-variant: #c1c6d7;
+  --color-outline: #717786;
+  --color-error: #ba1a1a;
+  --color-tertiary-container: #c64f00;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-glass: 1.25rem;
+  --radius-glass-lg: 1.5rem;
+  --radius-glass-xl: 2rem;
+
+  --shadow-ambient: 0 8px 32px 0 rgba(26, 28, 29, 0.06);
+  --shadow-ambient-lg: 0 24px 64px -16px rgba(26, 28, 29, 0.12);
+  --shadow-glow-primary: 0 0 20px rgba(0, 88, 188, 0.25);
+
+  --ease-glass: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  html {
+    height: 100%;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    @apply bg-surface text-on-surface min-h-dvh;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  #root {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/65 backdrop-blur-xl;
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .floating-card {
+    @apply rounded-[var(--radius-glass-lg)] bg-white/65 backdrop-blur-xl;
+    border: 1px solid color-mix(in srgb, var(--color-outline-variant) 20%, transparent);
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .ghost-border {
+    border: 1px solid color-mix(in srgb, var(--color-outline-variant) 20%, transparent);
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  }
+  .primary-button:hover:not(:disabled) {
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transform: translateY(-1px);
+  }
+  .primary-button:active:not(:disabled) {
+    transform: scale(0.96) translateY(0);
+  }
+  .primary-button:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-200;
+    @apply bg-white/50 backdrop-blur-md text-on-surface;
+    border: 1px solid color-mix(in srgb, var(--color-outline-variant) 25%, transparent);
+  }
+  .secondary-button:hover:not(:disabled) {
+    @apply bg-white/80;
+    transform: translateY(-1px);
+  }
+  .secondary-button:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  .glass-input {
+    @apply w-full rounded-xl bg-surface-container-low/50 px-4 py-3 text-on-surface transition-all duration-200 outline-none;
+    border: 1px solid color-mix(in srgb, var(--color-outline-variant) 30%, transparent);
+  }
+  .glass-input:focus {
+    border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 8%, transparent);
+  }
+
+  .spatial-grid-bg {
+    background-color: #f5f5f7;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-outline-variant) 35%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 28px 28px;
+  }
+
+  .icon-fill {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@layer utilities {
+  .animate-glass-in {
+    animation: glass-in 280ms var(--ease-glass) forwards;
+  }
+  @keyframes glass-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--color-primary) 12%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}

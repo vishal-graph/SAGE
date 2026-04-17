@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGE - Spatial Analysis Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#9e3d00",
+                        "on-secondary-container": "#2d4c83",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb595",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-tint": "#005bc1",
+                        "on-secondary-fixed-variant": "#26467d",
+                        "surface-container": "#eeeef0",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "primary-container": "#0070eb",
+                        "on-secondary-fixed": "#001a41",
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9fb",
+                        "on-primary-fixed-variant": "#004493",
+                        "inverse-surface": "#2f3132",
+                        "primary": "#0058bc",
+                        "on-surface-variant": "#414755",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary": "#405e96",
+                        "inverse-on-surface": "#f0f0f2",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#a1befd",
+                        "on-primary-container": "#fefcff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#351000",
+                        "surface-bright": "#f9f9fb",
+                        "surface-container-highest": "#e2e2e4",
+                        "on-tertiary-fixed-variant": "#7c2e00",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-surface": "#1a1c1d",
+                        "surface": "#f9f9fb",
+                        "surface-dim": "#d9dadc",
+                        "on-primary-fixed": "#001a41",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e8e8ea",
+                        "primary-fixed-dim": "#adc6ff",
+                        "outline": "#717786",
+                        "surface-variant": "#e2e2e4",
+                        "on-background": "#1a1c1d",
+                        "inverse-primary": "#adc6ff",
+                        "outline-variant": "#c1c6d7",
+                        "tertiary-container": "#c64f00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#d8e2ff",
+                        "surface-container-low": "#f3f3f5"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .bg-spatial-gradient {
+            background: linear-gradient(135deg, #0058bc 0%, #0070eb 100%);
+        }
+        .floor-plan-mask {
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/20 dark:border-slate-800/20 shadow-sm flex justify-between items-center px-6 h-14">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-100">SIGE</span>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-2 py-1 rounded-md" href="#">File</a>
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-2 py-1 rounded-md" href="#">Settings</a>
+<a class="font-sans text-sm tracking-tight font-medium text-blue-600 dark:text-blue-400 font-semibold px-2 py-1 rounded-md" href="#">View</a>
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-2 py-1 rounded-md" href="#">Window</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">account_circle</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-4 top-20 bottom-8 w-20 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/20 dark:border-slate-700/20 shadow-2xl shadow-blue-900/5 flex flex-col items-center py-8 gap-6 z-40">
+<div class="flex flex-col items-center gap-2 mb-4">
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold text-primary">SIGE</span>
+</div>
+<button class="flex flex-col items-center gap-1 group text-slate-500 dark:text-slate-400 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">near_me</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Select</span>
+</button>
+<button class="flex flex-col items-center gap-1 group text-slate-500 dark:text-slate-400 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">edit</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Draw</span>
+</button>
+<button class="flex flex-col items-center gap-1 group text-slate-500 dark:text-slate-400 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">rebase_edit</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Wall</span>
+</button>
+<button class="flex flex-col items-center gap-1 group text-slate-500 dark:text-slate-400 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">door_front</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Door</span>
+</button>
+<button class="flex flex-col items-center gap-1 group text-slate-500 dark:text-slate-400 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">weekend</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Furniture</span>
+</button>
+</aside>
+<main class="pt-14 ml-28 mr-[450px] min-h-screen relative overflow-hidden">
+<!-- Spatial Canvas Area -->
+<div class="p-8 h-full flex flex-col gap-6">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tighter text-on-surface">Spatial Analysis Report</h1>
+<p class="text-on-surface-variant font-medium mt-1">Project: Obsidian HQ - Level 04</p>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 rounded-full glass-panel border border-outline-variant/30 text-sm font-semibold flex items-center gap-2 hover:bg-white/80 transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Export PDF
+                    </button>
+<button class="px-5 py-2.5 rounded-full bg-spatial-gradient text-white text-sm font-semibold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                        Share Report
+                    </button>
+</div>
+</div>
+<!-- Floor Plan Canvas -->
+<div class="relative flex-grow min-h-[600px] rounded-[2rem] bg-surface-container-low overflow-hidden border border-outline-variant/10 shadow-inner">
+<div class="absolute inset-0 opacity-40 mix-blend-multiply floor-plan-mask" data-alt="high-resolution architectural floor plan blueprint with thin gray lines and minimalist technical annotations on a light background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDklQB9yE-iblkuMVVuZDdQ9GH10J2U7gV0vJh1gR0iXr3sfMNOpRb--FCZS-u0DvsbXTv1AqNdRVNg5bCEpBTFsmX2iCAk8BauADr0zcqkB0p1AHzt76KKR13u_lOkMZOxq_gwzSAizgK8Fx4bv9wsnXKbdpG8YSgGeL2kAU4Nwhphn4VVG4NQMHWMZtxpwbYbHpY1TuhbbiLf9SHESqf7Shaj0Yv_JIHnrdcy_DEKBb9WpK4Fu9YTbNUEzJ70XtSnVr35h-dg1glo'); background-size: cover; background-position: center;"></div>
+<!-- SVG Overlay for Analysis Visualization -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" viewbox="0 0 1000 600">
+<!-- Circulation Paths -->
+<path d="M 100,100 Q 250,150 400,100 T 700,120" fill="none" opacity="0.6" stroke="#0070eb" stroke-dasharray="10 5" stroke-width="3"></path>
+<path d="M 700,120 L 700,450 Q 500,500 300,450" fill="none" opacity="0.6" stroke="#0070eb" stroke-dasharray="10 5" stroke-width="3"></path>
+<path d="M 300,450 L 100,300" fill="none" opacity="0.6" stroke="#0070eb" stroke-dasharray="10 5" stroke-width="3"></path>
+<!-- Hotspots/Heatmap Circles -->
+<circle cx="200" cy="200" fill="url(#heat-gradient-1)" opacity="0.3" r="60"></circle>
+<circle cx="650" cy="350" fill="url(#heat-gradient-2)" opacity="0.4" r="80"></circle>
+<defs>
+<radialgradient id="heat-gradient-1">
+<stop offset="0%" stop-color="#0058bc"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</radialgradient>
+<radialgradient id="heat-gradient-2">
+<stop offset="0%" stop-color="#0070eb"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</radialgradient>
+</defs>
+</svg>
+<!-- Floating UI Markers -->
+<div class="absolute top-20 left-48 bg-white/90 backdrop-blur shadow-xl rounded-2xl p-4 border border-outline-variant/20">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">High Traffic</span>
+</div>
+<p class="text-sm font-bold">Lobby Junction</p>
+<p class="text-xs text-on-surface-variant">420 pathings/day</p>
+</div>
+<div class="absolute bottom-32 right-64 bg-white/90 backdrop-blur shadow-xl rounded-2xl p-4 border border-outline-variant/20">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-tertiary">Low Usage</span>
+</div>
+<p class="text-sm font-bold">West Corridor</p>
+<p class="text-xs text-on-surface-variant">Optimal for storage</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Right Sidebar: The Intelligence Dashboard -->
+<aside class="fixed right-0 top-14 bottom-0 w-[450px] glass-panel border-l border-outline-variant/20 z-40 overflow-y-auto px-8 py-10 flex flex-col gap-10 shadow-2xl">
+<!-- Section: Efficiency Score -->
+<div class="space-y-6">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Engine Performance</span>
+<div class="flex items-baseline gap-4">
+<span class="text-7xl font-extrabold tracking-tighter text-on-surface">84</span>
+<div class="flex flex-col">
+<span class="text-3xl font-bold text-primary">%</span>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Score</span>
+</div>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-spatial-gradient w-[84%] rounded-full shadow-lg shadow-primary/20"></div>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                The layout achieves exceptional efficiency. Spatial congestion in the primary nodes is reduced by <span class="text-primary font-bold">12%</span> compared to the previous iteration.
+            </p>
+</div>
+<!-- Section: Room Usage Analysis -->
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Room Usage Density</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
+</div>
+<!-- Custom Bento Style Metric Grid -->
+<div class="grid grid-cols-2 gap-4">
+<div class="p-6 rounded-[1.5rem] bg-surface-container-low border border-outline-variant/10 space-y-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">groups</span>
+<p class="text-2xl font-bold">62%</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Social Zones</p>
+</div>
+<div class="p-6 rounded-[1.5rem] bg-surface-container-low border border-outline-variant/10 space-y-2">
+<span class="material-symbols-outlined text-secondary">work</span>
+<p class="text-2xl font-bold">28%</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Focus Pods</p>
+</div>
+<div class="p-6 rounded-[1.5rem] bg-surface-container-low border border-outline-variant/10 space-y-2 col-span-2">
+<div class="flex justify-between items-end">
+<div class="space-y-2">
+<span class="material-symbols-outlined text-tertiary">meeting_room</span>
+<p class="text-2xl font-bold">10%</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Meeting Rms</p>
+</div>
+<div class="flex gap-1 h-12 items-end">
+<div class="w-1.5 h-full bg-primary/20 rounded-full"></div>
+<div class="w-1.5 h-3/4 bg-primary/40 rounded-full"></div>
+<div class="w-1.5 h-1/2 bg-primary/60 rounded-full"></div>
+<div class="w-1.5 h-full bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Circulation Pathing -->
+<div class="space-y-6">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Circulation Insights</span>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-white/40 border border-outline-variant/10">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">route</span>
+</div>
+<div>
+<p class="text-sm font-bold">Average Path length</p>
+<p class="text-xs text-on-surface-variant">24.5m per transition</p>
+</div>
+<div class="ml-auto text-primary font-bold text-sm">-4%</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-white/40 border border-outline-variant/10">
+<div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<p class="text-sm font-bold">Bottleneck Detected</p>
+<p class="text-xs text-on-surface-variant">North Elevator Bank</p>
+</div>
+<div class="ml-auto text-tertiary font-bold text-sm">High</div>
+</div>
+</div>
+</div>
+<!-- Footer Call to Action -->
+<div class="mt-auto p-6 rounded-[2rem] bg-primary-container/10 border border-primary-container/20 flex flex-col items-center text-center gap-4">
+<h4 class="font-bold text-on-primary-container">Need Further Optimization?</h4>
+<p class="text-xs text-on-secondary-container leading-relaxed">The AI Engine can suggest alternative wall placements to further improve circulation flow by up to 15%.</p>
+<button class="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-primary/90 transition-colors">Run AI Refactor</button>
+</div>
+</aside>
+<!-- Floating Navigation Bar (Mobile / Focus Mode) -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center px-6 py-4 glass-panel rounded-full border border-white/20 shadow-2xl z-50 md:hidden">
+<button class="flex flex-col items-center px-4 text-primary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase mt-1">Report</span>
+</button>
+<button class="flex flex-col items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-bold uppercase mt-1">Plan</span>
+</button>
+<button class="flex flex-col items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase mt-1">Config</span>
+</button>
+</div>
+</body></html>

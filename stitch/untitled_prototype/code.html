@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGE Workspace | Spatial Intelligence Grid Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#001a41",
+              "on-secondary-fixed": "#001a41",
+              "surface-variant": "#e2e2e4",
+              "on-background": "#1a1c1d",
+              "inverse-on-surface": "#f0f0f2",
+              "tertiary-fixed": "#ffdbcc",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1a1c1d",
+              "surface-bright": "#f9f9fb",
+              "secondary-fixed-dim": "#adc6ff",
+              "on-secondary-fixed-variant": "#26467d",
+              "on-tertiary-fixed-variant": "#7c2e00",
+              "on-error-container": "#93000a",
+              "tertiary-container": "#c64f00",
+              "surface-dim": "#d9dadc",
+              "primary": "#0058bc",
+              "on-secondary-container": "#2d4c83",
+              "on-primary-container": "#fefcff",
+              "surface-container-lowest": "#ffffff",
+              "secondary-container": "#a1befd",
+              "on-primary-fixed-variant": "#004493",
+              "surface-container-high": "#e8e8ea",
+              "surface": "#f9f9fb",
+              "primary-fixed-dim": "#adc6ff",
+              "inverse-surface": "#2f3132",
+              "on-tertiary-fixed": "#351000",
+              "surface-container-low": "#f3f3f5",
+              "primary-fixed": "#d8e2ff",
+              "surface-container": "#eeeef0",
+              "secondary": "#405e96",
+              "tertiary": "#9e3d00",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "primary-container": "#0070eb",
+              "surface-container-highest": "#e2e2e4",
+              "secondary-fixed": "#d8e2ff",
+              "outline-variant": "#c1c6d7",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#adc6ff",
+              "surface-tint": "#005bc1",
+              "on-surface-variant": "#414755",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff",
+              "outline": "#717786",
+              "background": "#f9f9fb",
+              "tertiary-fixed-dim": "#ffb595",
+              "on-tertiary-container": "#fffbff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .grid-canvas {
+            background-image: radial-gradient(circle, #e2e2e4 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden h-screen w-screen selection:bg-primary-container selection:text-white">
+<!-- Top Navigation Bar (The Anchor) -->
+<nav class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl mt-4 mx-auto w-[95%] max-w-7xl border border-white/20 dark:border-slate-700/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]">
+<div class="flex items-center gap-6">
+<span class="text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50">SIGE</span>
+<div class="flex items-center gap-4 text-sm font-medium tracking-tight">
+<button class="text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 px-1 py-0.5 transition-all">File</button>
+<button class="text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 px-3 py-1.5 rounded-xl transition-colors active:scale-95 duration-200">Settings</button>
+<button class="text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 px-3 py-1.5 rounded-xl transition-colors active:scale-95 duration-200">Save</button>
+</div>
+</div>
+<div class="absolute left-1/2 -translate-x-1/2">
+<h1 class="text-sm font-bold tracking-[0.2em] uppercase text-on-surface/60">SIGE Workspace</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:text-blue-600 transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-1 pl-3 flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors active:scale-95">
+<span class="text-xs font-medium">Administrator</span>
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- Main Spatial Canvas -->
+<main class="relative w-full h-full pt-24 grid-canvas bg-[#F5F5F7] flex items-center justify-center">
+<!-- Center Empty State: Floor Plan Upload -->
+<div class="relative group cursor-pointer">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary to-primary-container rounded-[2.5rem] blur opacity-10 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative bg-white/80 glass-panel border border-outline-variant/20 rounded-[2rem] p-12 flex flex-col items-center gap-6 shadow-2xl max-w-md text-center transition-all duration-300 hover:scale-[1.01] active:scale-[0.98]">
+<div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center text-primary/40 mb-2">
+<span class="material-symbols-outlined text-5xl">cloud_upload</span>
+</div>
+<div>
+<h2 class="text-2xl font-bold tracking-tight text-on-surface">Upload Floor Plan</h2>
+<p class="text-on-surface-variant mt-2 text-sm leading-relaxed">Drag and drop your architectural source files (PDF, DXF, or PNG) to begin spatial analysis.</p>
+</div>
+<button class="mt-4 px-8 py-3 bg-gradient-to-r from-primary to-primary-container text-white rounded-full font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+                    Browse Files
+                </button>
+<div class="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface/30">Support for 4K architectural renders</div>
+</div>
+</div>
+</main>
+<!-- Side Tool Dock (Left) -->
+<aside class="fixed left-0 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-4 w-16 items-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl ml-4 my-auto h-fit py-4 border border-white/20 dark:border-slate-700/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]">
+<div class="flex flex-col items-center gap-1 mb-2">
+<span class="text-[8px] font-bold uppercase tracking-widest text-slate-400">Tools</span>
+</div>
+<!-- Tool: Select (Active) -->
+<button class="group flex flex-col items-center gap-1 p-2 bg-blue-600/10 text-blue-600 dark:text-blue-400 rounded-xl transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">near_me</span>
+<span class="text-[8px] font-bold uppercase tracking-[0.05em]">Select</span>
+</button>
+<!-- Tool: Draw Room -->
+<button class="group flex flex-col items-center gap-1 p-2 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-300 transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-xl">polyline</span>
+<span class="text-[8px] font-bold uppercase tracking-[0.05em]">Draw</span>
+</button>
+<!-- Tool: Wall -->
+<button class="group flex flex-col items-center gap-1 p-2 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-300 transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-xl">horizontal_rule</span>
+<span class="text-[8px] font-bold uppercase tracking-[0.05em]">Wall</span>
+</button>
+<!-- Tool: Door -->
+<button class="group flex flex-col items-center gap-1 p-2 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-300 transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-xl">door_front</span>
+<span class="text-[8px] font-bold uppercase tracking-[0.05em]">Door</span>
+</button>
+<!-- Tool: Furniture -->
+<button class="group flex flex-col items-center gap-1 p-2 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-300 transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-xl">chair</span>
+<span class="text-[8px] font-bold uppercase tracking-[0.05em]">Decor</span>
+</button>
+<div class="mt-4 pt-4 border-t border-outline-variant/20 flex flex-col items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-xl">grid_view</span>
+</button>
+</div>
+</aside>
+<!-- Right Metrics Panel -->
+<aside class="fixed right-6 top-1/2 -translate-y-1/2 z-40 w-72 flex flex-col gap-4 pointer-events-none">
+<!-- Efficiency Card -->
+<div class="pointer-events-auto bg-white/60 glass-panel border border-outline-variant/20 rounded-[1.25rem] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] hover:scale-[1.02] transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40">Efficiency Score</span>
+<span class="flex items-center gap-1 text-primary text-[10px] font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span> +2%
+                </span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-bold tracking-tighter text-on-surface">84</span>
+<span class="text-lg font-medium text-on-surface/40">%</span>
+</div>
+<div class="mt-4 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container w-[84%] rounded-full shadow-[0_0_12px_rgba(0,88,188,0.3)]"></div>
+</div>
+</div>
+<!-- Usage Card -->
+<div class="pointer-events-auto bg-white/60 glass-panel border border-outline-variant/20 rounded-[1.25rem] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] hover:scale-[1.02] transition-transform duration-300">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40">Footprint Usage</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold tracking-tight text-on-surface">1,200</span>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface/40">sqft</span>
+</div>
+<div class="mt-4 flex gap-1 h-2">
+<div class="h-full w-3/5 bg-primary rounded-l-full"></div>
+<div class="h-full w-1/5 bg-secondary"></div>
+<div class="h-full w-1/5 bg-tertiary-container rounded-r-full"></div>
+</div>
+</div>
+<!-- Room Breakdown Chart (Visual Placeholder) -->
+<div class="pointer-events-auto bg-white/60 glass-panel border border-outline-variant/20 rounded-[1.25rem] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] hover:scale-[1.02] transition-transform duration-300">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 block mb-6">Room Breakdown</span>
+<div class="flex items-end justify-between h-24 gap-2">
+<div class="group relative flex-1 bg-primary/20 rounded-t-lg h-3/4 hover:bg-primary transition-colors cursor-help">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded">64%</div>
+</div>
+<div class="group relative flex-1 bg-primary/20 rounded-t-lg h-2/5 hover:bg-primary transition-colors cursor-help">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded">32%</div>
+</div>
+<div class="group relative flex-1 bg-primary/20 rounded-t-lg h-full hover:bg-primary transition-colors cursor-help">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded">88%</div>
+</div>
+<div class="group relative flex-1 bg-primary/20 rounded-t-lg h-3/5 hover:bg-primary transition-colors cursor-help">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded">50%</div>
+</div>
+<div class="group relative flex-1 bg-primary/20 rounded-t-lg h-4/5 hover:bg-primary transition-colors cursor-help">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded">72%</div>
+</div>
+</div>
+<div class="flex justify-between mt-4 text-[9px] font-bold text-on-surface/30 uppercase tracking-tighter">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span>
+</div>
+</div>
+</aside>
+<!-- The Grid Engine HUD (Floating Bottom) -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+<div class="glass-panel bg-white/60 border-t border-outline-variant/15 rounded-full px-8 py-3 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex items-center gap-8 border border-white/20">
+<div class="flex items-center gap-4 border-r border-outline-variant/20 pr-8">
+<div class="flex flex-col">
+<span class="text-[9px] font-bold uppercase tracking-widest text-on-surface/40">Status</span>
+<span class="text-xs font-semibold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                        Calibrating Engine
+                    </span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="p-2 text-on-surface/60 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<div class="text-sm font-medium text-on-surface/80 min-w-[3rem] text-center">100%</div>
+<button class="p-2 text-on-surface/60 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">zoom_out</span>
+</button>
+</div>
+<div class="flex items-center gap-4 border-l border-outline-variant/20 pl-8">
+<button class="px-6 py-2 bg-on-surface text-surface rounded-full text-xs font-bold uppercase tracking-widest hover:bg-on-surface/90 active:scale-95 transition-all">
+                    Generate Analysis
+                </button>
+</div>
+</div>
+</div>
+</body></html>

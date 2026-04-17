@@ -1,0 +1,22 @@
+# Secrets — never commit
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node / build
+node_modules/
+frontend/dist/
+
+# Local runtime data (do not push secrets or customer data)
+backend/storage/
+
+# Nested clone / separate repo (optional; remove this line to vendor GET3D into SAGE)
+GET3D/

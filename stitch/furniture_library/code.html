@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGE - Furniture Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#9e3d00",
+              "on-secondary-container": "#2d4c83",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#ffb595",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#005bc1",
+              "on-secondary-fixed-variant": "#26467d",
+              "surface-container": "#eeeef0",
+              "secondary-fixed-dim": "#adc6ff",
+              "primary-container": "#0070eb",
+              "on-secondary-fixed": "#001a41",
+              "on-primary": "#ffffff",
+              "background": "#f9f9fb",
+              "on-primary-fixed-variant": "#004493",
+              "inverse-surface": "#2f3132",
+              "primary": "#0058bc",
+              "on-surface-variant": "#414755",
+              "primary-fixed": "#d8e2ff",
+              "secondary": "#405e96",
+              "inverse-on-surface": "#f0f0f2",
+              "on-error": "#ffffff",
+              "secondary-container": "#a1befd",
+              "on-primary-container": "#fefcff",
+              "error": "#ba1a1a",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed": "#351000",
+              "surface-bright": "#f9f9fb",
+              "surface-container-highest": "#e2e2e4",
+              "on-tertiary-fixed-variant": "#7c2e00",
+              "tertiary-fixed": "#ffdbcc",
+              "on-surface": "#1a1c1d",
+              "surface": "#f9f9fb",
+              "surface-dim": "#d9dadc",
+              "on-primary-fixed": "#001a41",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e8e8ea",
+              "primary-fixed-dim": "#adc6ff",
+              "outline": "#717786",
+              "surface-variant": "#e2e2e4",
+              "on-background": "#1a1c1d",
+              "inverse-primary": "#adc6ff",
+              "outline-variant": "#c1c6d7",
+              "tertiary-container": "#c64f00",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#d8e2ff",
+              "surface-container-low": "#f3f3f5"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9fb;
+            overflow: hidden;
+        }
+        .grid-canvas {
+            background-image: radial-gradient(#c1c6d7 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/20 shadow-sm flex justify-between items-center px-6 h-14">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-100">SIGE</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-600 dark:text-slate-400 font-sans text-sm tracking-tight font-medium hover:bg-slate-100/50 transition-colors px-3 py-1 rounded-lg" href="#">File</a>
+<a class="text-slate-600 dark:text-slate-400 font-sans text-sm tracking-tight font-medium hover:bg-slate-100/50 transition-colors px-3 py-1 rounded-lg" href="#">Settings</a>
+<a class="text-blue-600 dark:text-blue-400 font-sans text-sm tracking-tight font-semibold hover:bg-slate-100/50 transition-colors px-3 py-1 rounded-lg" href="#">View</a>
+<a class="text-slate-600 dark:text-slate-400 font-sans text-sm tracking-tight font-medium hover:bg-slate-100/50 transition-colors px-3 py-1 rounded-lg" href="#">Window</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-600 hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-slate-600 hover:text-primary transition-colors">account_circle</button>
+</div>
+</header>
+<!-- SideNavBar (Context: Furniture active) -->
+<aside class="fixed left-4 top-20 bottom-8 w-20 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-blue-900/5 flex flex-col items-center py-8 gap-6 z-40">
+<div class="flex flex-col items-center gap-1 group cursor-pointer text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">near_me</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Select</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">edit</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Draw</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">rebase_edit</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Wall</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">door_front</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Door</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 rounded-2xl p-2 px-3 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined">weekend</span>
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold">Furniture</span>
+</div>
+</aside>
+<!-- Main Workspace Canvas -->
+<main class="fixed inset-0 pt-14 pl-24 grid-canvas flex items-center justify-center">
+<!-- Floor Plan Representation -->
+<div class="relative w-[800px] h-[600px] bg-white border border-outline-variant/20 shadow-2xl rounded-3xl p-12 overflow-hidden">
+<div class="absolute inset-0 opacity-5 pointer-events-none">
+<div class="w-full h-full border-2 border-primary border-dashed rounded-2xl"></div>
+</div>
+<!-- Floor Plan Content Mockup -->
+<div class="relative z-10 space-y-8">
+<div class="flex justify-between border-b border-outline-variant/30 pb-4">
+<h2 class="text-2xl font-bold tracking-tight text-on-surface">Unit 402 - Executive Suite</h2>
+<span class="text-label-md font-medium text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">v1.0.4 Live</span>
+</div>
+<div class="grid grid-cols-4 gap-6">
+<div class="h-64 border-2 border-outline-variant border-dashed rounded-2xl flex items-center justify-center bg-surface-container-low/50">
+<span class="text-outline text-xs font-medium uppercase tracking-widest">Office Area</span>
+</div>
+<div class="h-64 col-span-2 border-2 border-outline-variant border-dashed rounded-2xl flex items-center justify-center bg-surface-container-low/50">
+<span class="text-outline text-xs font-medium uppercase tracking-widest">Open Workspace</span>
+</div>
+<div class="h-64 border-2 border-outline-variant border-dashed rounded-2xl flex items-center justify-center bg-surface-container-low/50">
+<span class="text-outline text-xs font-medium uppercase tracking-widest">Storage</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Furniture Library Panel (Floating Glass Card) -->
+<div class="absolute right-12 top-24 bottom-12 w-96 glass rounded-3xl shadow-2xl border border-white/40 flex flex-col z-50">
+<!-- Header -->
+<div class="p-6 pb-4">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h1 class="text-xl font-bold tracking-tight text-on-surface">Furniture Library</h1>
+<p class="text-xs text-on-surface-variant/70 font-medium uppercase tracking-widest">Spatial Assets</p>
+</div>
+<button class="w-10 h-10 rounded-full glass border border-outline-variant/20 flex items-center justify-center text-on-surface-variant hover:bg-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white/40 border border-outline-variant/20 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-on-surface-variant/40" placeholder="Search assets..." type="text"/>
+</div>
+</div>
+<!-- Categories Grid -->
+<div class="flex-1 overflow-y-auto px-6 py-2 custom-scrollbar">
+<div class="mb-6">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant mb-4 block">Primary Categories</label>
+<div class="grid grid-cols-2 gap-3">
+<!-- Category Item -->
+<div class="bg-white/80 p-4 rounded-2xl border border-white shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">chair_alt</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Seating</span>
+<p class="text-[10px] text-on-surface-variant">124 Items</p>
+</div>
+<div class="bg-white/80 p-4 rounded-2xl border border-white shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">table_restaurant</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Tables</span>
+<p class="text-[10px] text-on-surface-variant">86 Items</p>
+</div>
+<div class="bg-white/80 p-4 rounded-2xl border border-white shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Storage</span>
+<p class="text-[10px] text-on-surface-variant">42 Items</p>
+</div>
+<div class="bg-white/80 p-4 rounded-2xl border border-white shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Lighting</span>
+<p class="text-[10px] text-on-surface-variant">65 Items</p>
+</div>
+</div>
+</div>
+<!-- Recent Items -->
+<div>
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant mb-4 block">Recently Used</label>
+<div class="space-y-3">
+<div class="flex items-center gap-4 bg-white/40 p-3 rounded-2xl border border-white/40 hover:bg-white/60 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Minimalist ergonomic office chair in white leather with chrome base against neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfwN0KjUyGuAmdniA0C4SL8OjGPouwFiBitas676QzVTonQ8SJAjUAEli41ZXw1L2o3Z-ayslGCpLZiesnKBQwQevhWgAmUvnDgiD3yY4Sz3x4Mjomenx4c1u6E_rrbVUfuABWxljhhlxrKZXbtUQ_GxUyO6VsJQe4tJH6rh2PxYroPbAeWY1G2_4GAsqlGgKJWlZu1DvWTUe8wXMXoHliz9sn7zS_uEIZHmX9JHvZj_AUnCl5O6fdXSTL0jOjhv-trwl5kYFat6uz"/>
+</div>
+<div class="flex-1">
+<h4 class="text-xs font-bold text-on-surface">Aeron Task Chair</h4>
+<p class="text-[10px] text-on-surface-variant">Herman Miller • $1,200</p>
+</div>
+<button class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">add_circle</button>
+</div>
+<div class="flex items-center gap-4 bg-white/40 p-3 rounded-2xl border border-white/40 hover:bg-white/60 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Modern light wood executive desk with clean lines and integrated cable management in bright studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgLfN65PM2wqTNWxl85zYWE-h1ufebrfaCitXTGLfEBVpprp91IQE0eL-M6pg5pIUO9XitPoph973m9IH9o5ehDwn53RgORx2S0U9OrClN6mvYCCHqVN3HMC7qzEixjHM1NoC96w1qCtQrv9Cl2wDFFkznlv6DsvS8o31W9Q3W3NLMe2AwGX6m8cKc9IF_GZ0gqW7RGyTJosCME_f361VQ1Pu0XJsQVVP-bQPGxCUrKmLiUzcJqc4pMnDgDg5695eqRBN6B8BzO2Di"/>
+</div>
+<div class="flex-1">
+<h4 class="text-xs font-bold text-on-surface">Eames Desk Unit</h4>
+<p class="text-[10px] text-on-surface-variant">Vitra • $4,500</p>
+</div>
+<button class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">add_circle</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Intelligence Dock -->
+<div class="p-6 bg-surface-container-highest/30 rounded-b-3xl">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-primary/20 active:scale-[0.96] transition-transform">
+<span class="material-symbols-outlined">auto_awesome</span>
+                    Smart Suggest Placement
+                </button>
+<p class="text-center text-[10px] text-on-surface-variant/60 mt-3 font-medium">SIGE AI Engine calibrating spatial flow...</p>
+</div>
+</div>
+</main>
+<!-- Grid Engine HUD (Floating Bottom Center) -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 glass border-t border-white/20 px-8 py-4 rounded-3xl shadow-[0_40px_80px_rgba(26,28,29,0.08)] flex items-center gap-8 z-50">
+<div class="flex items-center gap-3 pr-8 border-r border-outline-variant/30">
+<div class="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface">Grid Live</p>
+<p class="text-[10px] text-on-surface-variant">Snap: 10cm</p>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">zoom_out</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">3d_rotation</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">layers</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-8 border-l border-outline-variant/30">
+<button class="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline">Export CAD</button>
+</div>
+</div>
+</body></html>

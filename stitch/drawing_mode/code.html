@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGE - Spatial Grid Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#9e3d00",
+              "on-secondary-container": "#2d4c83",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#ffb595",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#005bc1",
+              "on-secondary-fixed-variant": "#26467d",
+              "surface-container": "#eeeef0",
+              "secondary-fixed-dim": "#adc6ff",
+              "primary-container": "#0070eb",
+              "on-secondary-fixed": "#001a41",
+              "on-primary": "#ffffff",
+              "background": "#f9f9fb",
+              "on-primary-fixed-variant": "#004493",
+              "inverse-surface": "#2f3132",
+              "primary": "#0058bc",
+              "on-surface-variant": "#414755",
+              "primary-fixed": "#d8e2ff",
+              "secondary": "#405e96",
+              "inverse-on-surface": "#f0f0f2",
+              "on-error": "#ffffff",
+              "secondary-container": "#a1befd",
+              "on-primary-container": "#fefcff",
+              "error": "#ba1a1a",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed": "#351000",
+              "surface-bright": "#f9f9fb",
+              "surface-container-highest": "#e2e2e4",
+              "on-tertiary-fixed-variant": "#7c2e00",
+              "tertiary-fixed": "#ffdbcc",
+              "on-surface": "#1a1c1d",
+              "surface": "#f9f9fb",
+              "surface-dim": "#d9dadc",
+              "on-primary-fixed": "#001a41",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e8e8ea",
+              "primary-fixed-dim": "#adc6ff",
+              "outline": "#717786",
+              "surface-variant": "#e2e2e4",
+              "on-background": "#1a1c1d",
+              "inverse-primary": "#adc6ff",
+              "outline-variant": "#c1c6d7",
+              "tertiary-container": "#c64f00",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#d8e2ff",
+              "surface-container-low": "#f3f3f5"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .canvas-grid {
+            background-image: 
+                linear-gradient(to right, rgba(193, 198, 215, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(193, 198, 215, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .canvas-grid-fine {
+            background-image: 
+                linear-gradient(to right, rgba(193, 198, 215, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(193, 198, 215, 0.05) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body overflow-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/20 dark:border-slate-800/20 shadow-sm flex justify-between items-center px-6 h-14 w-full">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-100">SIGE</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-3 py-1 rounded-lg" href="#">File</a>
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-3 py-1 rounded-lg" href="#">Settings</a>
+<a class="font-sans text-sm tracking-tight font-medium text-blue-600 dark:text-blue-400 font-semibold px-3 py-1 rounded-lg" href="#">View</a>
+<a class="font-sans text-sm tracking-tight font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors px-3 py-1 rounded-lg" href="#">Window</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-600 hover:bg-slate-100/50 p-2 rounded-full transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-slate-600 hover:bg-slate-100/50 p-2 rounded-full transition-colors" data-icon="account_circle">account_circle</button>
+</div>
+</nav>
+<!-- SideNavBar (Drawing Mode Focused) -->
+<aside class="fixed left-4 top-20 bottom-8 w-20 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/20 dark:border-slate-700/20 shadow-2xl shadow-blue-900/5 flex flex-col items-center py-8 gap-6 z-40">
+<div class="flex flex-col items-center gap-1 mb-4">
+<span class="font-sans text-[11px] uppercase tracking-widest font-bold text-blue-600">Active</span>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl" data-icon="near_me">near_me</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold">Select</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl" data-icon="edit">edit</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold">Draw</span>
+</button>
+<button class="flex flex-col items-center gap-1 bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 rounded-2xl p-3 scale-110 shadow-lg shadow-blue-500/10">
+<span class="material-symbols-outlined text-2xl" data-icon="rebase_edit" style="font-variation-settings: 'FILL' 1;">rebase_edit</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold">Wall</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl" data-icon="door_front">door_front</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold">Door</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500 hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl" data-icon="weekend">weekend</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-bold">Furniture</span>
+</button>
+</aside>
+<!-- Main Canvas Area -->
+<main class="relative w-full h-screen overflow-hidden pt-14 pl-24 cursor-crosshair">
+<!-- Persistent Grid Background -->
+<div class="absolute inset-0 canvas-grid pointer-events-none"></div>
+<div class="absolute inset-0 canvas-grid-fine pointer-events-none"></div>
+<!-- Drawing State Layer -->
+<div class="relative w-full h-full flex items-center justify-center">
+<!-- Existing Walls -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none">
+<path d="M 400 300 L 800 300 L 800 600" fill="none" stroke="#1a1c1d" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"></path>
+<!-- Active Wall Drawing (Blue Guideline) -->
+<line stroke="#0058bc" stroke-dasharray="8 4" stroke-width="4" x1="800" x2="550" y1="600" y2="600"></line>
+<circle cx="800" cy="600" fill="#0058bc" r="4"></circle>
+<circle cx="550" cy="600" fill="#0058bc" r="4"></circle>
+</svg>
+<!-- Dimension Label -->
+<div class="absolute" style="left: 675px; top: 565px; transform: translateX(-50%);">
+<div class="bg-primary text-on-primary px-3 py-1 rounded-full text-xs font-bold tracking-wider shadow-lg">
+                    12' 4"
+                </div>
+</div>
+<!-- Cursor HUD -->
+<div class="absolute" style="left: 550px; top: 600px;">
+<div class="ml-4 mt-4 bg-white/80 backdrop-blur-md border border-outline-variant/30 px-3 py-2 rounded-xl shadow-xl flex flex-col gap-1 min-w-[100px]">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-outline uppercase tracking-tighter">X</span>
+<span class="text-xs font-mono font-bold">550.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-outline uppercase tracking-tighter">Y</span>
+<span class="text-xs font-mono font-bold">600.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating HUD: Drawing Options -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
+<div class="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/20 dark:border-slate-700/20 px-8 py-5 rounded-[2rem] shadow-[0_40px_80px_rgba(0,88,188,0.08)] flex items-center gap-12">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-[0.2em]">Wall Thickness</span>
+<div class="flex items-center gap-3">
+<input class="w-24 accent-primary h-1 bg-surface-container-highest rounded-full appearance-none cursor-pointer" type="range"/>
+<span class="text-sm font-bold text-on-surface">6"</span>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/20"></div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-[0.2em]">Snap Settings</span>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-blue-600/10 text-blue-600 px-3 py-1 rounded-full border border-blue-600/20">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">grid_on</span>
+<span class="text-xs font-bold">Grid</span>
+</button>
+<button class="flex items-center gap-2 text-outline px-3 py-1 rounded-full hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-sm">filter_center_focus</span>
+<span class="text-xs font-bold">Object</span>
+</button>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/20"></div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all">
+                    Apply Changes
+                </button>
+</div>
+</div>
+<!-- Corner Details / Metadata -->
+<div class="absolute bottom-8 right-8 flex flex-col items-end gap-2 text-right">
+<h2 class="text-display-sm text-2xl font-bold tracking-tight text-on-surface">Spatial Grid v1.0</h2>
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline uppercase tracking-widest">Scale</span>
+<span class="text-sm font-semibold">1:50</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline uppercase tracking-widest">Units</span>
+<span class="text-sm font-semibold">Imperial (Decimal)</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Project Context Panel (Hidden/Floating Asymmetric Element) -->
+<div class="fixed top-24 right-8 w-64 bg-surface-container-low/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-xl p-6 flex flex-col gap-6 z-40">
+<div>
+<span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest block mb-1">Current Task</span>
+<h3 class="text-lg font-bold text-on-surface leading-tight">Master Bedroom Layout</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 rounded-full bg-primary ring-4 ring-primary/10"></div>
+<div>
+<span class="text-xs font-bold block">Internal Wall Construction</span>
+<p class="text-[11px] text-outline leading-relaxed mt-0.5">Defining the boundary between Master Bed and Ensuite.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 opacity-40">
+<div class="mt-1 w-2 h-2 rounded-full bg-outline-variant"></div>
+<div>
+<span class="text-xs font-bold block">Door Placement</span>
+<span class="text-[11px] text-outline">Awaiting wall completion</span>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/20 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-outline uppercase tracking-widest">Area</span>
+<span class="text-sm font-bold">245.4 sq. ft</span>
+</div>
+<button class="material-symbols-outlined text-outline" data-icon="info">info</button>
+</div>
+</div>
+<!-- Background Ambience (Subtle Gradients) -->
+<div class="fixed -z-10 top-0 right-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed -z-10 bottom-0 left-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
+</body></html>
