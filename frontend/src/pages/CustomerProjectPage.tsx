@@ -256,6 +256,11 @@ export function CustomerProjectPage() {
                   <p className="mt-2 text-sm">{overview?.summary.project_type || 'Project type not set'}</p>
                   <p className="mt-1 text-sm text-on-surface-variant">{overview?.summary.budget_range || 'Budget not set'}</p>
                   <p className="mt-1 text-sm text-on-surface-variant">{String(location.label || overview?.summary.customer_location || 'Location not set')}</p>
+                  {overview?.summary.invite_code && (
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                      Invite code: {overview.summary.invite_code}
+                    </p>
+                  )}
                   <p className="mt-2 text-xs text-on-surface/40">Updated {formatDate(overview?.summary.updated_at)}</p>
                 </div>
                 <div className="rounded-2xl bg-surface-container-low/60 p-4">
