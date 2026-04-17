@@ -284,8 +284,14 @@ export function SigeApp() {
         analysisControls={<AnalysisTopBarButtons />}
       />
       {sharingReadonly && (
-        <div className="fixed right-6 top-20 z-[60] rounded-xl border border-outline-variant/25 bg-white/95 px-4 py-2 text-sm text-on-surface shadow-[var(--shadow-ambient)]">
-          Sharing readonly version...
+        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-on-surface/35 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-outline-variant/25 bg-white/95 p-6 text-center shadow-[var(--shadow-ambient-lg)]">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" aria-hidden />
+            <p className="mt-4 text-base font-semibold text-on-surface">Saving and sharing project...</p>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Please wait. We are saving your latest layout and publishing the read-only 3D version.
+            </p>
+          </div>
         </div>
       )}
 
