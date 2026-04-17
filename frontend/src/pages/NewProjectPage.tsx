@@ -4,6 +4,7 @@ import { getJson, postJson } from '../api/client'
 import { GlassCard } from '../components/ui/GlassCard'
 import { PrimaryButton } from '../components/ui/PrimaryButton'
 import { SecondaryButton } from '../components/ui/SecondaryButton'
+import { useAuth } from '../context/AuthContext'
 import { resetSigeWorkspace } from '../store/useSigeStore'
 import type { LocationSearchResponse, LocationSuggestion } from '../types/auth'
 import { pdfFirstPageToDataUrl } from '../utils/pdf'
@@ -44,6 +45,7 @@ async function readFloorPlan(file: File) {
 
 export function NewProjectPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [customerName, setCustomerName] = useState('')
   const [projectName, setProjectName] = useState('')
   const [projectNameTouched, setProjectNameTouched] = useState(false)
@@ -179,6 +181,25 @@ export function NewProjectPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (user?.role === 'customer') {
+    return (
+      <div className="h-dvh overflow-y-auto spatial-grid-bg px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <GlassCard className="space-y-4 p-6 text-center" hoverLift={false}>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Access restricted</p>
+            <h1 className="text-2xl font-bold tracking-tight">Customers cannot create projects</h1>
+            <p className="text-sm text-on-surface-variant">
+              Projects are created by vendors. You can review assigned projects, open readonly 3D versions, and share feedback in chat.
+            </p>
+            <div className="pt-2">
+              <SecondaryButton onClick={() => navigate('/dashboard')}>Back to dashboard</SecondaryButton>
+            </div>
+          </GlassCard>
+        </div>
+      </div>
+    )
   }
 
   return (

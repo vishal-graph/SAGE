@@ -120,16 +120,22 @@ export function ProjectDashboardPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Project Dashboard</p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Welcome, {user?.name ?? 'Planner'}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
-              Manage your recent SIGE workspaces, continue saved projects, or start a fresh planning session.
+              {user?.role === 'customer'
+                ? 'View assigned projects, share feedback in chat, and review readonly 3D updates from your vendor.'
+                : 'Manage your recent SIGE workspaces, continue saved projects, or start a fresh planning session.'}
             </p>
           </div>
           <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3">
-            <SecondaryButton className="w-full sm:w-auto" onClick={() => navigate(user?.role === 'customer' ? '/projects/new' : '/editor')}>
-              {user?.role === 'customer' ? 'New request' : 'Open editor'}
-            </SecondaryButton>
-            <PrimaryButton className="w-full sm:w-auto" onClick={startNewProject}>
-              New project
-            </PrimaryButton>
+            {user?.role !== 'customer' && (
+              <>
+                <SecondaryButton className="w-full sm:w-auto" onClick={() => navigate('/editor')}>
+                  Open editor
+                </SecondaryButton>
+                <PrimaryButton className="w-full sm:w-auto" onClick={startNewProject}>
+                  New project
+                </PrimaryButton>
+              </>
+            )}
             <SecondaryButton className="w-full sm:w-auto" onClick={() => void handleSignOut()}>
               Sign out
             </SecondaryButton>
@@ -172,13 +178,17 @@ export function ProjectDashboardPage() {
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-outline-variant/40 bg-surface-container-low/40 p-8 text-center">
-                <h3 className="text-lg font-semibold">No projects yet</h3>
+                <h3 className="text-lg font-semibold">{user?.role === 'customer' ? 'No assigned projects yet' : 'No projects yet'}</h3>
                 <p className="mt-2 text-sm text-on-surface-variant">
-                  Create your first project and it will appear here with customer, location, and room details.
+                  {user?.role === 'customer'
+                    ? 'Your vendor will share projects with you. Once shared, they will appear here automatically.'
+                    : 'Create your first project and it will appear here with customer, location, and room details.'}
                 </p>
-                <PrimaryButton className="mt-5" onClick={startNewProject}>
-                  Create first project
-                </PrimaryButton>
+                {user?.role !== 'customer' && (
+                  <PrimaryButton className="mt-5" onClick={startNewProject}>
+                    Create first project
+                  </PrimaryButton>
+                )}
               </div>
             )}
           </GlassCard>
@@ -186,26 +196,41 @@ export function ProjectDashboardPage() {
           <GlassCard className="space-y-5 p-6" hoverLift={false}>
             <div>
               <h2 className="text-xl font-semibold">Quick actions</h2>
-              <p className="mt-1 text-sm text-on-surface-variant">Common next steps after sign-in.</p>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                {user?.role === 'customer'
+                  ? 'Open shared projects to chat with vendor and review readonly 3D updates.'
+                  : 'Common next steps after sign-in.'}
+              </p>
             </div>
 
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={startNewProject}
-                className="w-full rounded-2xl bg-primary/8 px-4 py-4 text-left transition hover:bg-primary/12"
-              >
-                <p className="font-semibold">Start a new project intake</p>
-                <p className="mt-1 text-sm text-on-surface-variant">Collect project questions first, then continue into the editor.</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/editor')}
-                className="w-full rounded-2xl bg-surface-container-low/70 px-4 py-4 text-left transition hover:bg-surface-container-high/80"
-              >
-                <p className="font-semibold">Open editor directly</p>
-                <p className="mt-1 text-sm text-on-surface-variant">Continue editing in the main SIGE floor-plan workspace.</p>
-              </button>
+              {user?.role === 'customer' ? (
+                <div className="rounded-2xl bg-surface-container-low/70 px-4 py-4 text-left">
+                  <p className="font-semibold">Feedback-only access</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    Customers can view shared projects, open readonly 3D versions, and chat with vendor for feedback.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={startNewProject}
+                    className="w-full rounded-2xl bg-primary/8 px-4 py-4 text-left transition hover:bg-primary/12"
+                  >
+                    <p className="font-semibold">Start a new project intake</p>
+                    <p className="mt-1 text-sm text-on-surface-variant">Collect project questions first, then continue into the editor.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/editor')}
+                    className="w-full rounded-2xl bg-surface-container-low/70 px-4 py-4 text-left transition hover:bg-surface-container-high/80"
+                  >
+                    <p className="font-semibold">Open editor directly</p>
+                    <p className="mt-1 text-sm text-on-surface-variant">Continue editing in the main SIGE floor-plan workspace.</p>
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="rounded-2xl bg-surface-container-low/60 p-4">
