@@ -42,8 +42,32 @@ class VerifyOtpRequest(BaseModel):
     otp: str
 
 
+# api.withtatva.ai exposes the same routes but SMS send currently returns 500.
+OTP_BASE_URL = "https://api.tatvaops.com/users/api/auth"
+
+
 def _otp_base_url() -> str:
-    return (os.environ.get("SIGE_OTP_BASE_URL") or "https://devapi.tatvaops.com/users/api/auth").rstrip("/")
+    return (os.environ.get("SIGE_OTP_BASE_URL") or OTP_BASE_URL).rstrip("/")
+
+
+def _otp_connect_error(url: str, err: httpx.RequestError) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=f"OTP provider unreachable at {url}: {err.__class__.__name__}",
+    )
+
+
+def _otp_provider_detail(resp: httpx.Response) -> str:
+    text = resp.text[:2000] if resp.text else "OTP provider error"
+    try:
+        data = resp.json()
+        if isinstance(data, dict):
+            message = data.get("message") or data.get("detail")
+            if message:
+                return str(message)
+    except Exception:
+        pass
+    return text
 
 
 class VendorOtpSignInRequest(BaseModel):
@@ -65,11 +89,10 @@ def vendor_otp_sign_in(body: VendorOtpSignInRequest) -> AuthResponse:
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, json={"phoneNumber": body.phoneNumber, "otp": body.otp})
     except httpx.RequestError as e:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+        raise _otp_connect_error(url, e) from e
 
     if resp.status_code >= 400:
-        detail = resp.text[:2000] if resp.text else "OTP provider error"
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_otp_provider_detail(resp))
 
     # Heuristic: treat explicit { ok/verified/success: false } as invalid.
     try:
@@ -114,11 +137,10 @@ def send_otp(body: SendOtpRequest):
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, json={"phoneNumber": body.phoneNumber})
     except httpx.RequestError as e:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+        raise _otp_connect_error(url, e) from e
 
     if resp.status_code >= 400:
-        detail = resp.text[:2000] if resp.text else "OTP provider error"
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_otp_provider_detail(resp))
     try:
         return resp.json()
     except Exception:
@@ -133,11 +155,10 @@ def verify_otp(body: VerifyOtpRequest):
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, json={"phoneNumber": body.phoneNumber, "otp": body.otp})
     except httpx.RequestError as e:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+        raise _otp_connect_error(url, e) from e
 
     if resp.status_code >= 400:
-        detail = resp.text[:2000] if resp.text else "OTP provider error"
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_otp_provider_detail(resp))
     try:
         return resp.json()
     except Exception:
