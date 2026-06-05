@@ -12,6 +12,7 @@ interface TopBarProps {
   showMessagesButton?: boolean
   onShareReadonlyClick?: () => void
   showShareReadonlyButton?: boolean
+  on3DEditorClick?: () => void
   analysisControls?: ReactNode
 }
 
@@ -25,6 +26,7 @@ export function TopBar({
   showMessagesButton,
   onShareReadonlyClick,
   showShareReadonlyButton,
+  on3DEditorClick,
   analysisControls,
 }: TopBarProps) {
   const tbSecondary =
@@ -52,6 +54,16 @@ export function TopBar({
                   className="inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold leading-none text-primary underline decoration-primary/30 decoration-1 underline-offset-2 transition-colors hover:bg-primary/5 active:scale-[0.98]"
                 >
                   Dashboard
+                </button>
+              )}
+              {on3DEditorClick && (
+                <button
+                  type="button"
+                  onClick={on3DEditorClick}
+                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg bg-primary/8 px-2.5 text-xs font-semibold leading-none text-primary transition-colors hover:bg-primary/14 active:scale-[0.98]"
+                >
+                  <MaterialIcon name="view_in_ar" className="text-base leading-none" />
+                  3D
                 </button>
               )}
               <SecondaryButton className={tbSecondary} type="button" onClick={onUploadClick}>
@@ -87,7 +99,12 @@ export function TopBar({
               <span className="hidden xl:inline">Save</span>
             </SecondaryButton>
             {showShareReadonlyButton && onShareReadonlyClick && (
-              <SecondaryButton type="button" className={`${tbSecondary} hidden sm:inline-flex`} onClick={onShareReadonlyClick} title="Save and share readonly 3D">
+              <SecondaryButton
+                type="button"
+                className={`${tbSecondary} inline-flex`}
+                onClick={onShareReadonlyClick}
+                title="Save and share readonly 3D with the customer"
+              >
                 <MaterialIcon name="share" className="!text-lg leading-none text-on-surface-variant xl:!hidden" />
                 <span className="hidden xl:inline">Save & Share</span>
               </SecondaryButton>

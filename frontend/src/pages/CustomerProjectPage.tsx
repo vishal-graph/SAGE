@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { appendAuthToken, createAuthedWebSocket, getApiBase, getJson, postFile, postJson } from '../api/client'
+import { HttpApiError, appendAuthToken, createAuthedWebSocket, getApiBase, getJson, postFile, postJson } from '../api/client'
 import { GlassCard } from '../components/ui/GlassCard'
 import { PrimaryButton } from '../components/ui/PrimaryButton'
 import { SecondaryButton } from '../components/ui/SecondaryButton'
@@ -65,6 +65,7 @@ export function CustomerProjectPage() {
   const [error, setError] = useState('')
   const [linkPreviews, setLinkPreviews] = useState<Record<string, LinkPreview | null>>({})
   const [sharedReadonlyVersion, setSharedReadonlyVersion] = useState<SharedReadonlyVersionResponse | null>(null)
+  const sharedReadonlyLoadedRef = useRef(false)
   const listRef = useRef<HTMLDivElement | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
@@ -77,6 +78,7 @@ export function CustomerProjectPage() {
     async function load() {
       setLoading(true)
       setError('')
+      sharedReadonlyLoadedRef.current = false
       try {
         const [overviewRes, messagesRes] = await Promise.all([
           getJson<ProjectOverviewResponse>(`/project/${projectId}/overview`),
@@ -87,9 +89,19 @@ export function CustomerProjectPage() {
         setMessages(messagesRes.messages)
         try {
           const sharedRes = await getJson<SharedReadonlyVersionResponse>(`/project/${projectId}/shared-readonly`)
-          if (active) setSharedReadonlyVersion(sharedRes)
-        } catch {
-          if (active) setSharedReadonlyVersion(null)
+          if (active) {
+            setSharedReadonlyVersion(sharedRes)
+            sharedReadonlyLoadedRef.current = true
+          }
+        } catch (err) {
+          if (!active) return
+          if (err instanceof HttpApiError && err.status === 404) {
+            setSharedReadonlyVersion(null)
+            sharedReadonlyLoadedRef.current = false
+            return
+          }
+          // Keep UI usable even if this optional fetch fails transiently.
+          setSharedReadonlyVersion(null)
         }
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load project')
@@ -101,6 +113,26 @@ export function CustomerProjectPage() {
     return () => {
       active = false
     }
+  }, [projectId])
+
+  useEffect(() => {
+    if (!projectId) return () => {}
+    const timer = window.setInterval(() => {
+      if (sharedReadonlyLoadedRef.current) return
+      getJson<SharedReadonlyVersionResponse>(`/project/${projectId}/shared-readonly`)
+        .then((sharedRes) => {
+          setSharedReadonlyVersion(sharedRes)
+          sharedReadonlyLoadedRef.current = true
+        })
+        .catch((err) => {
+          // Avoid spamming console/network when the vendor hasn't shared yet.
+          if (err instanceof HttpApiError && err.status === 404) {
+            setSharedReadonlyVersion(null)
+          }
+          // Keep current UI state on transient fetch failures.
+        })
+    }, 5000)
+    return () => window.clearInterval(timer)
   }, [projectId])
 
   useEffect(() => {
@@ -281,7 +313,8 @@ export function CustomerProjectPage() {
                     </div>
                   ) : (
                     <p className="mt-2 text-sm text-on-surface-variant">
-                      Vendor has not shared a readonly 3D version yet.
+                      Vendor has not published a readonly 3D snapshot yet. Ask them to open the editor and click{' '}
+                      <span className="font-semibold">Save & Share</span>.
                     </p>
                   )}
                 </div>

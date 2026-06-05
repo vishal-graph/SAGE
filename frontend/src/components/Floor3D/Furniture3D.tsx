@@ -15,6 +15,7 @@ import {
 import * as M from './furniture3dMath'
 import { getKenneyModelUrl } from './kenneyModelMap'
 import { KenneyGlbMesh } from './KenneyGlbMesh'
+import { ObjMesh } from './ObjMesh'
 import { FootprintFallback } from './FootprintFallback'
 import { GlbErrorBoundary } from './GlbErrorBoundary'
 import { intersectFloorXZ } from './floorPointer'
@@ -22,7 +23,15 @@ import { useSetFloor3DOrbit } from './Floor3DOrbitContext'
 
 type Preview = { cx: number; cz: number; w: number; d: number }
 
-type ResizeKind = 'resize-right' | 'resize-left' | 'resize-front' | 'resize-back'
+type ResizeKind =
+  | 'resize-right'
+  | 'resize-left'
+  | 'resize-front'
+  | 'resize-back'
+  | 'resize-corner-fr'
+  | 'resize-corner-fl'
+  | 'resize-corner-br'
+  | 'resize-corner-bl'
 
 function Furniture3DInner({
   item,
@@ -39,6 +48,9 @@ function Furniture3DInner({
 }) {
   const updateFurniture = useSigeStore((s) => s.updateFurniture)
   const setSelected = useSigeStore((s) => s.setSelectedFurnitureId)
+  const setSelectedWall = useSigeStore((s) => s.setSelectedWallId)
+  const setSelectedDoor = useSigeStore((s) => s.setSelectedDoorId)
+  const setSelectedWindow = useSigeStore((s) => s.setSelectedWindowId)
   const snapToGrid = useSigeStore((s) => s.snapToGrid)
   const walls = useSigeStore((s) => s.walls)
   const rooms = useSigeStore((s) => s.rooms)
@@ -78,13 +90,21 @@ function Furniture3DInner({
   const wFt = preview?.w ?? item.widthFt
   const dFt = preview?.d ?? item.depthFt
   const yLift = dragging ? 0.08 : 0
+  const elevationFt = Math.max(0, Number(item.elevationFt ?? 0))
+  const isLocked = Boolean(item.locked)
 
   const glbUrl = getKenneyModelUrl(item.type)
+  const isObjModel = Boolean(glbUrl && glbUrl.toLowerCase().endsWith('.obj'))
+  const isGenericGlbModel = item.type === 'round_sofa'
 
   const onPointerDownBody = (e: ThreeEvent<PointerEvent>) => {
     if (readOnly) return
     e.stopPropagation()
     setSelected(item.id)
+    setSelectedWall(null)
+    setSelectedDoor(null)
+    setSelectedWindow(null)
+    if (isLocked) return
     setOrbit(false)
     setDragging(true)
     const pid = e.nativeEvent.pointerId
@@ -142,7 +162,7 @@ function Furniture3DInner({
           ? itemStateFromWorldCenter(item, fcx, fcz, gridSizeFt, pxPerFt, snapToGrid)
           : itemStateFromCenter(item, fcx, fcz, gridSizeFt)
       const draft: FurnitureItem = { ...item, ...patch }
-      if (gridInputs && !isPlacementValid(draft, item.id, gridInputs, { allowFurnitureOverlap: true })) {
+      if (gridInputs && !isPlacementValid(draft, item.id, gridInputs, { allowFurnitureOverlap: true, allowWallOverlap: true })) {
         setPreview(null)
         return
       }
@@ -156,9 +176,12 @@ function Furniture3DInner({
   }
 
   const onPointerDownResize = (e: ThreeEvent<PointerEvent>, kind: ResizeKind) => {
-    if (readOnly) return
+    if (readOnly || isLocked) return
     e.stopPropagation()
     setSelected(item.id)
+    setSelectedWall(null)
+    setSelectedDoor(null)
+    setSelectedWindow(null)
     setOrbit(false)
     setDragging(true)
     const pid = e.nativeEvent.pointerId
@@ -201,12 +224,27 @@ function Furniture3DInner({
         const c = M.centerAfterResizeDepthFromBackFixed(startC.x, startC.z, rotYRad, startD, newD)
         ncx = c.x
         ncz = c.z
-      } else {
+      } else if (kind === 'resize-back') {
         const dlz = M.projectWorldDeltaOnLocalZ(rotYRad, dwx, dwz)
         newD = snapDimensionFt(startD - dlz, gridSizeFt)
         const c = M.centerAfterResizeDepthFromFrontFixed(startC.x, startC.z, rotYRad, startD, newD)
         ncx = c.x
         ncz = c.z
+      } else {
+        // Corner resize: uniform/proportional scale from center (all corners expand together).
+        const dlx = M.projectWorldDeltaOnLocalX(rotYRad, dwx, dwz)
+        const dlz = M.projectWorldDeltaOnLocalZ(rotYRad, dwx, dwz)
+        const sx = kind === 'resize-corner-fr' || kind === 'resize-corner-br' ? 1 : -1
+        const sz = kind === 'resize-corner-fr' || kind === 'resize-corner-fl' ? 1 : -1
+        const halfW = Math.max(1e-4, startW / 2)
+        const halfD = Math.max(1e-4, startD / 2)
+        const scaleX = (halfW + sx * dlx) / halfW
+        const scaleZ = (halfD + sz * dlz) / halfD
+        const rawScale = Math.max(0.15, (scaleX + scaleZ) / 2)
+        newW = snapDimensionFt(startW * rawScale, gridSizeFt)
+        newD = snapDimensionFt(startD * rawScale, gridSizeFt)
+        ncx = startC.x
+        ncz = startC.z
       }
 
       liveRef.current = { cx: ncx, cz: ncz, w: newW, d: newD }
@@ -248,7 +286,7 @@ function Furniture3DInner({
         gridY: patch.gridY,
         freeOffsetPx: patch.freeOffsetPx,
       }
-      if (gridInputs && !isPlacementValid(next, item.id, gridInputs, { allowFurnitureOverlap: true })) {
+      if (gridInputs && !isPlacementValid(next, item.id, gridInputs, { allowFurnitureOverlap: true, allowWallOverlap: true })) {
         setPreview(null)
         return
       }
@@ -269,13 +307,14 @@ function Furniture3DInner({
 
   const handleThickness = 0.22
   const handleLong = Math.max(0.35, Math.min(wFt, dFt) * 0.35)
+  const cornerSize = Math.max(0.24, Math.min(wFt, dFt) * 0.12)
   const handleY = 0.12 + yLift
 
   const fallback = <FootprintFallback widthFt={wFt} depthFt={dFt} showEdges={false} />
 
   return (
     <group
-      position={[cx, yLift, cz]}
+      position={[cx, yLift + elevationFt, cz]}
       rotation={[0, rotYRad, 0]}
       onClick={(e) => e.stopPropagation()}
     >
@@ -283,7 +322,16 @@ function Furniture3DInner({
         {glbUrl ? (
           <GlbErrorBoundary fallback={fallback}>
             <Suspense fallback={fallback}>
-              <KenneyGlbMesh url={glbUrl} widthFt={wFt} depthFt={dFt} />
+              {isObjModel ? (
+                <ObjMesh url={glbUrl} widthFt={wFt} depthFt={dFt} />
+              ) : (
+                <KenneyGlbMesh
+                  url={glbUrl}
+                  widthFt={wFt}
+                  depthFt={dFt}
+                  genericAsset={isGenericGlbModel}
+                />
+              )}
             </Suspense>
           </GlbErrorBoundary>
         ) : (
@@ -291,7 +339,7 @@ function Furniture3DInner({
         )}
       </group>
 
-      {!readOnly && selected && (
+      {!readOnly && selected && !isLocked && (
         <group position={[0, 0.02, 0]}>
           <mesh>
             <boxGeometry args={[wFt + 0.06, 0.04, dFt + 0.06]} />
@@ -335,6 +383,38 @@ function Furniture3DInner({
             <boxGeometry args={[handleLong, handleLong, handleThickness]} />
             <meshBasicMaterial transparent opacity={0.02} depthWrite={false} />
           </mesh>
+          <mesh
+            position={[wFt / 2 + cornerSize / 2, handleY, dFt / 2 + cornerSize / 2]}
+            onPointerDown={(e) => onPointerDownResize(e, 'resize-corner-fr')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <boxGeometry args={[cornerSize, cornerSize, cornerSize]} />
+            <meshBasicMaterial transparent opacity={0.05} depthWrite={false} />
+          </mesh>
+          <mesh
+            position={[-wFt / 2 - cornerSize / 2, handleY, dFt / 2 + cornerSize / 2]}
+            onPointerDown={(e) => onPointerDownResize(e, 'resize-corner-fl')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <boxGeometry args={[cornerSize, cornerSize, cornerSize]} />
+            <meshBasicMaterial transparent opacity={0.05} depthWrite={false} />
+          </mesh>
+          <mesh
+            position={[wFt / 2 + cornerSize / 2, handleY, -dFt / 2 - cornerSize / 2]}
+            onPointerDown={(e) => onPointerDownResize(e, 'resize-corner-br')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <boxGeometry args={[cornerSize, cornerSize, cornerSize]} />
+            <meshBasicMaterial transparent opacity={0.05} depthWrite={false} />
+          </mesh>
+          <mesh
+            position={[-wFt / 2 - cornerSize / 2, handleY, -dFt / 2 - cornerSize / 2]}
+            onPointerDown={(e) => onPointerDownResize(e, 'resize-corner-bl')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <boxGeometry args={[cornerSize, cornerSize, cornerSize]} />
+            <meshBasicMaterial transparent opacity={0.05} depthWrite={false} />
+          </mesh>
         </>
       )}
     </group>
@@ -354,6 +434,8 @@ export const Furniture3D = memo(Furniture3DInner, (a, b) => {
     p.rotation === q.rotation &&
     p.freeOffsetPx[0] === q.freeOffsetPx[0] &&
     p.freeOffsetPx[1] === q.freeOffsetPx[1] &&
+    (p.elevationFt ?? 0) === (q.elevationFt ?? 0) &&
+    Boolean(p.locked) === Boolean(q.locked) &&
     p.type === q.type
   )
 })

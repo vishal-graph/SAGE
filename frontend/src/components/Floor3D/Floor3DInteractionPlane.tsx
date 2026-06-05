@@ -42,6 +42,9 @@ export function Floor3DInteractionPlane({
   const setPendingPreset = useSigeStore((s) => s.setPendingPreset)
   const setTool = useSigeStore((s) => s.setTool)
   const setSelected = useSigeStore((s) => s.setSelectedFurnitureId)
+  const setSelectedWall = useSigeStore((s) => s.setSelectedWallId)
+  const setSelectedDoor = useSigeStore((s) => s.setSelectedDoorId)
+  const setSelectedWindow = useSigeStore((s) => s.setSelectedWindowId)
 
   const canPlace =
     tool === 'placeFurniture' &&
@@ -72,7 +75,7 @@ export function Floor3DInteractionPlane({
             r,
             planScaleFactor != null ? { planScaleFactor } : undefined,
           )
-          if (isPlacementValid(item, null, gridInputs, { allowFurnitureOverlap: true })) {
+          if (isPlacementValid(item, null, gridInputs, { allowFurnitureOverlap: true, allowWallOverlap: true })) {
             addFurniture(item)
             setPendingPreset(null)
             setTool('select')
@@ -82,6 +85,9 @@ export function Floor3DInteractionPlane({
 
         if (tool === 'select') {
           setSelected(null)
+          setSelectedWall(null)
+          setSelectedDoor(null)
+          setSelectedWindow(null)
         }
       }}
     >

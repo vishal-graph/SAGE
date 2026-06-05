@@ -57,7 +57,7 @@ export const KENNEY_GLB_BY_TYPE: Partial<Record<string, string>> = {
   bookcase_wide: '/models/kenney/bookcaseClosedWide.glb',
   bookcase_open: '/models/kenney/bookcaseOpen.glb',
   bookcase_open_low: '/models/kenney/bookcaseOpenLow.glb',
-  tv_stand: '/models/kenney/cabinetTelevision.glb',
+  tv_stand: '/models/kenney/modern%20tv%20stand%203d%20model.glb',
   tv_stand_doors: '/models/kenney/cabinetTelevisionDoors.glb',
 
   // —— Kitchen ——
@@ -100,6 +100,7 @@ export const KENNEY_GLB_BY_TYPE: Partial<Record<string, string>> = {
   rug_rectangle: '/models/kenney/rugRectangle.glb',
   rug_round: '/models/kenney/rugRound.glb',
   speaker: '/models/kenney/speaker.glb',
+  round_sofa: '/models/kenney/sectional+sofa+3d+model.glb',
 }
 
 export function getKenneyModelUrl(type: string): string | undefined {

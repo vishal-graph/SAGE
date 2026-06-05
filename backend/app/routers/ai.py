@@ -5,7 +5,10 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
-from app.models.schemas import CleanFloorplanImageRequest, CleanFloorplanImageResponse
+from app.models.schemas import (
+    CleanFloorplanImageRequest,
+    CleanFloorplanImageResponse,
+)
 from app.services.gemini_clean_image import clean_floorplan_image
 
 logger = logging.getLogger(__name__)

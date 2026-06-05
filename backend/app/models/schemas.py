@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -98,6 +98,32 @@ class InviteCodeSignInRequest(BaseModel):
 class AuthResponse(BaseModel):
     token: str
     user: UserSummary
+
+
+class VendorServicePortfolio(BaseModel):
+    service: str
+    image_urls: List[str] = Field(default_factory=list)
+
+
+class VendorProfile(BaseModel):
+    user_id: str
+    phone: str
+    email: str
+    gst_number: str
+    additional_gst_numbers: List[str] = Field(default_factory=list)
+    company_name: str
+    company_type: str
+    designation: str
+    alternative_contact_no: str
+    bank_name: str
+    account_number: str
+    ifsc_code: str
+    min_project_budget_inr: int = Field(..., ge=0)
+    services: List[str] = Field(..., min_length=1)
+    portfolio: List[VendorServicePortfolio] = Field(default_factory=list)
+    documents: Dict[str, Optional[str]] = Field(default_factory=dict)
+    created_at: str
+    updated_at: str
 
 
 class ProjectSummary(BaseModel):

@@ -233,6 +233,23 @@ def share_readonly_version(project_id: str, user=Depends(require_user)) -> Share
     current_record["updated_at"] = shared_at
     access_index[safe_id] = current_record
     save_access_index(access_index)
+
+    # Persist share metadata in project payload as durable fallback for environments
+    # where access index replication may lag.
+    payload_meta = payload.get("meta")
+    if not isinstance(payload_meta, dict):
+        payload_meta = {}
+        payload["meta"] = payload_meta
+    payload_meta["shared_readonly"] = {
+        "version_id": version_id,
+        "shared_at": shared_at,
+        "shared_by_user_id": str(user.get("id") or ""),
+    }
+    if supabase_enabled():
+        save_project_payload(safe_id, payload, str(user.get("id") or ""))
+    else:
+        path = STORAGE / f"{safe_id}.json"
+        path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return ShareReadonlyResponse(project_id=safe_id, version_id=version_id, shared_at=shared_at)
 
 
@@ -242,6 +259,19 @@ def get_shared_readonly_version(project_id: str, user=Depends(require_user)) -> 
     require_project_access(user, safe_id)
     access_record = get_access_record(safe_id) or {}
     shared = access_record.get("shared_readonly")
+    # Durable fallback: if access record is stale, read from saved payload metadata.
+    if not isinstance(shared, dict):
+        payload = load_project(safe_id, user)
+        meta = payload.get("meta", {}) if isinstance(payload.get("meta"), dict) else {}
+        shared_meta = meta.get("shared_readonly", {}) if isinstance(meta.get("shared_readonly"), dict) else {}
+        if shared_meta.get("version_id"):
+            return SharedReadonlyVersionResponse(
+                project_id=safe_id,
+                version_id=str(shared_meta.get("version_id") or ""),
+                shared_at=str(shared_meta.get("shared_at") or ""),
+                shared_by_user_id=str(shared_meta.get("shared_by_user_id") or ""),
+                payload=payload,
+            )
     if not isinstance(shared, dict):
         raise HTTPException(status_code=404, detail="Readonly version not shared yet")
     payload = shared.get("payload")

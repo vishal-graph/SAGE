@@ -2,7 +2,19 @@ import { useSigeStore } from '../../store/useSigeStore'
 import type { Tool } from '../../types'
 import { ToolButton } from '../ui/ToolButton'
 
-const ORDER: Tool[] = ['select', 'calibrate', 'room', 'wall', 'door', 'placeFurniture']
+const ORDER: Tool[] = [
+  'select',
+  'calibrate',
+  'connection',
+  'room',
+  'wall',
+  'door',
+  'window',
+  'ceiling',
+  'ceilingLight',
+  'viewPost',
+  'placeFurniture',
+]
 
 export function LeftToolDock() {
   const tool = useSigeStore((s) => s.tool)

@@ -168,8 +168,12 @@ export function NewProjectPage() {
         },
         geometry: {
           rooms: [],
+          connection_points: [],
           walls: [],
           doors: [],
+          windows: [],
+          ceilings: [],
+          lights: [],
         },
         furniture: [],
       }

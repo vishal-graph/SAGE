@@ -25,6 +25,10 @@ export function BottomHUD({
 }: BottomHUDProps) {
   const openPanels = useSigeStore((s) => s.openPanels)
   const setPanelOpen = useSigeStore((s) => s.setPanelOpen)
+  const undo = useSigeStore((s) => s.undo)
+  const redo = useSigeStore((s) => s.redo)
+  const canUndo = useSigeStore((s) => s.past.length > 0)
+  const canRedo = useSigeStore((s) => s.future.length > 0)
 
   const pin = (key: PanelKey, icon: string, label: string) => (
     <button
@@ -53,6 +57,29 @@ export function BottomHUD({
           {pin('view', 'layers', 'Show layers')}
         </div>
         <div className="hidden h-8 w-px bg-outline-variant/20 lg:block" aria-hidden />
+        <div className="flex items-center gap-2">
+          <SecondaryButton
+            type="button"
+            className="!gap-1 !text-xs"
+            onClick={undo}
+            disabled={!canUndo}
+            title="Undo (Ctrl/Cmd+Z)"
+          >
+            <MaterialIcon name="undo" className="!text-lg" />
+            Undo
+          </SecondaryButton>
+          <SecondaryButton
+            type="button"
+            className="!gap-1 !text-xs"
+            onClick={redo}
+            disabled={!canRedo}
+            title="Redo (Ctrl/Cmd+Y or Shift+Ctrl/Cmd+Z)"
+          >
+            <MaterialIcon name="redo" className="!text-lg" />
+            Redo
+          </SecondaryButton>
+        </div>
+        <div className="h-8 w-px bg-outline-variant/20" aria-hidden />
 
         <div className="flex items-center gap-2">
           <MaterialIcon name="grid_4x4" className="text-on-surface-variant text-lg" />

@@ -1,159 +1,17 @@
-import { Suspense, useLayoutEffect, useMemo } from 'react'
-import { Line, useTexture } from '@react-three/drei'
-import * as THREE from 'three'
-import type { Door, Room, Wall } from '../../types'
-import { planPxToWorldXZ } from './planCoordinates'
-
-const Y_TEXTURE = 0.016
-const Y_BORDER = 0.038
-const Y_DOOR = 0.052
-
-/** Floor plan image as XZ plane, aligned with 2D pixel (0,0) → world (0,0). */
-function FloorPlanTextureMesh({
-  url,
-  planWidthFt,
-  planDepthFt,
-}: {
-  url: string
-  planWidthFt: number
-  planDepthFt: number
-}) {
-  const texture = useTexture(url)
-  useLayoutEffect(() => {
-    texture.colorSpace = THREE.SRGBColorSpace
-    texture.wrapS = THREE.ClampToEdgeWrapping
-    texture.wrapT = THREE.ClampToEdgeWrapping
-    texture.needsUpdate = true
-  }, [texture])
-
-  return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[planWidthFt / 2, Y_TEXTURE, planDepthFt / 2]}
-      receiveShadow
-    >
-      <planeGeometry args={[planWidthFt, planDepthFt]} />
-      <meshStandardMaterial map={texture} roughness={0.88} metalness={0.02} />
-    </mesh>
-  )
-}
-
-/** Outer rectangle matching the raster extent (same as 2D image bounds). */
-function PlanPerimeterLine({
-  planWidthFt,
-  planDepthFt,
-}: {
-  planWidthFt: number
-  planDepthFt: number
-}) {
-  const pts: THREE.Vector3[] = useMemo(
-    () => [
-      new THREE.Vector3(0, Y_BORDER, 0),
-      new THREE.Vector3(planWidthFt, Y_BORDER, 0),
-      new THREE.Vector3(planWidthFt, Y_BORDER, planDepthFt),
-      new THREE.Vector3(0, Y_BORDER, planDepthFt),
-      new THREE.Vector3(0, Y_BORDER, 0),
-    ],
-    [planWidthFt, planDepthFt],
-  )
-  return (
-    <Line
-      points={pts}
-      color="#1e293b"
-      lineWidth={2.5}
-      dashed={false}
-      depthTest
-      depthWrite={false}
-      renderOrder={2}
-    />
-  )
-}
-
-function WallSegmentLine({
-  wall,
-  pxPerFt,
-}: {
-  wall: Wall
-  pxPerFt: number
-}) {
-  const a = planPxToWorldXZ(wall.x1, wall.y1, pxPerFt)
-  const b = planPxToWorldXZ(wall.x2, wall.y2, pxPerFt)
-  const pts = [new THREE.Vector3(a.x, Y_BORDER, a.z), new THREE.Vector3(b.x, Y_BORDER, b.z)]
-  return (
-    <Line
-      points={pts}
-      color="#e11d48"
-      lineWidth={3}
-      depthTest
-      depthWrite={false}
-      renderOrder={2}
-    />
-  )
-}
-
-function RoomOutlineLine({
-  room,
-  pxPerFt,
-}: {
-  room: Room
-  pxPerFt: number
-}) {
-  const pts = useMemo(() => {
-    const poly = room.polygon
-    if (poly.length < 2) return []
-    const v: THREE.Vector3[] = poly.map(([px, py]) => {
-      const p = planPxToWorldXZ(px, py, pxPerFt)
-      return new THREE.Vector3(p.x, Y_BORDER + 0.004, p.z)
-    })
-    if (v.length > 0) v.push(v[0]!.clone())
-    return v
-  }, [room.polygon, pxPerFt])
-
-  if (pts.length < 3) return null
-
-  return (
-    <Line
-      points={pts}
-      color="#f59e0b"
-      lineWidth={2}
-      depthTest
-      depthWrite={false}
-      transparent
-      opacity={0.95}
-      renderOrder={2}
-    />
-  )
-}
-
-function DoorMarker3D({
-  door,
-  cellSizePx,
-  pxPerFt,
-}: {
-  door: Door
-  cellSizePx: number
-  pxPerFt: number
-}) {
-  const cx = (door.col + 0.5) * cellSizePx
-  const cy = (door.row + 0.5) * cellSizePx
-  const { x, z } = planPxToWorldXZ(cx, cy, pxPerFt)
-  const r = Math.max(0.12, (cellSizePx / pxPerFt) * 0.22)
-
-  return (
-    <mesh position={[x, Y_DOOR, z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3}>
-      <ringGeometry args={[r * 0.45, r, 24]} />
-      <meshStandardMaterial
-        color="#38bdf8"
-        emissive="#0ea5e9"
-        emissiveIntensity={0.25}
-        roughness={0.5}
-        metalness={0.1}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  )
-}
+import { useMemo } from 'react'
+import type { ConnectionPoint, Door, Room, Wall, Window } from '../../types'
+import { useSigeStore } from '../../store/useSigeStore'
+import { useThree } from '@react-three/fiber'
+import { FloorPlanTextureMesh3D } from './primitives/FloorPlanTextureMesh3D'
+import { PlanPerimeterLine3D } from './primitives/PlanPerimeterLine3D'
+import { WallSegment3D } from './primitives/WallSegment3D'
+import { RoomOutlineLine3D } from './primitives/RoomOutlineLine3D'
+import { DoorMarker3D } from './primitives/DoorMarker3D'
+import { WindowMarker3D } from './primitives/WindowMarker3D'
+import { Ceiling3D } from './primitives/Ceiling3D'
+import { LightsOverlay3D } from './primitives/LightsOverlay3D'
+import { ViewPosts3D } from './primitives/ViewPosts3D'
+import { SnapIndicator3D } from './SnapIndicator3D'
 
 export function FloorPlanOverlay3D({
   imageUrl,
@@ -165,6 +23,10 @@ export function FloorPlanOverlay3D({
   walls,
   rooms,
   doors,
+  windows,
+  ceilings,
+  lights,
+  connectionPoints,
 }: {
   imageUrl: string | null
   showFloorPlanImage: boolean
@@ -175,33 +37,118 @@ export function FloorPlanOverlay3D({
   walls: Wall[]
   rooms: Room[]
   doors: Door[]
+  windows: Window[]
+  ceilings: import('../../types').Ceiling[]
+  lights: import('../../types').SigeLight[]
+  connectionPoints: ConnectionPoint[]
 }) {
+  const selectedWallIds = useSigeStore((s) => s.selectedWallIds)
+  const selectedDoorId = useSigeStore((s) => s.selectedDoorId)
+  const selectedWindowId = useSigeStore((s) => s.selectedWindowId)
+  const showWalls = useSigeStore((s) => s.showWalls)
+  const showDoors = useSigeStore((s) => s.showDoors)
+  const showWindows = useSigeStore((s) => s.showWindows)
+  const showCeilings = useSigeStore((s) => s.showCeilings)
+  const showLights = useSigeStore((s) => s.showLights)
+  const selectedCeilingId = useSigeStore((s) => s.selectedCeilingId)
+  const selectedLightId = useSigeStore((s) => s.selectedLightId)
+  const forceShowCeilings = useSigeStore((s) => s.forceShowCeilings)
+  const viewPosts = useSigeStore((s) => (s as any).viewPosts as import('../../types').ViewPost[])
+  const wallSnapIndicator = useSigeStore((s) => s.wallSnapIndicator)
+  const { camera } = useThree()
   const planWidthFt = imageWidthPx / pxPerFt
   const planDepthFt = imageHeightPx / pxPerFt
+  const visibleWalls = useMemo(() => walls.filter((w) => !w.hidden), [walls])
 
   const hasImage = Boolean(imageUrl && showFloorPlanImage && imageWidthPx > 0 && imageHeightPx > 0)
+  const autoHideCeilings = !forceShowCeilings && camera.position.y < 6 && !selectedCeilingId
 
   return (
     <group>
-      {hasImage && imageUrl && (
-        <Suspense fallback={null}>
-          <FloorPlanTextureMesh url={imageUrl} planWidthFt={planWidthFt} planDepthFt={planDepthFt} />
-        </Suspense>
+      {hasImage && imageUrl && <FloorPlanTextureMesh3D url={imageUrl} planWidthFt={planWidthFt} planDepthFt={planDepthFt} />}
+
+      <PlanPerimeterLine3D planWidthFt={planWidthFt} planDepthFt={planDepthFt} />
+
+      {showWalls ? (
+        visibleWalls.map((w) => (
+        <WallSegment3D
+          key={w.id}
+          wall={w}
+          pxPerFt={pxPerFt}
+          selected={selectedWallIds.includes(w.id)}
+          windows={windows}
+          connectionPoints={connectionPoints}
+        />
+      ))
+      ) : (
+        // Keep invisible shadow-occluder walls so lights remain contained even when walls are hidden.
+        walls.map((w) => (
+          <WallSegment3D
+            key={`shadow-${w.id}`}
+            wall={w}
+            pxPerFt={pxPerFt}
+            selected={false}
+            windows={windows}
+            connectionPoints={connectionPoints}
+            shadowOnly
+          />
+        ))
       )}
 
-      <PlanPerimeterLine planWidthFt={planWidthFt} planDepthFt={planDepthFt} />
-
-      {walls.map((w) => (
-        <WallSegmentLine key={w.id} wall={w} pxPerFt={pxPerFt} />
-      ))}
-
       {rooms.map((r) => (
-        <RoomOutlineLine key={r.id} room={r} pxPerFt={pxPerFt} />
+        <RoomOutlineLine3D key={r.id} room={r} pxPerFt={pxPerFt} />
       ))}
 
-      {doors.map((d) => (
-        <DoorMarker3D key={d.id} door={d} cellSizePx={cellSizePx} pxPerFt={pxPerFt} />
+      {showDoors &&
+        doors.map((d) => (
+        <DoorMarker3D
+          key={d.id}
+          door={d}
+          cellSizePx={cellSizePx}
+          pxPerFt={pxPerFt}
+          walls={visibleWalls}
+          connectionPoints={connectionPoints}
+          selected={selectedDoorId === d.id}
+        />
       ))}
+      {showWindows &&
+        windows.map((w) => (
+        <WindowMarker3D
+          key={w.id}
+          item={w}
+          pxPerFt={pxPerFt}
+          connectionPoints={connectionPoints}
+          selected={selectedWindowId === w.id}
+        />
+      ))}
+
+      {showCeilings &&
+        !autoHideCeilings &&
+        ceilings
+          .filter((c) => !c.hidden)
+          .map((c) => (
+            <Ceiling3D
+              key={c.id}
+              item={c}
+              pxPerFt={pxPerFt}
+              selected={selectedCeilingId === c.id}
+            />
+          ))}
+
+      {showLights && (
+        <LightsOverlay3D
+          lights={lights}
+          pxPerFt={pxPerFt}
+          selectedLightId={selectedLightId}
+          ceilings={ceilings}
+          rooms={rooms}
+        />
+      )}
+
+      {viewPosts.length > 0 && <ViewPosts3D posts={viewPosts} pxPerFt={pxPerFt} />}
+      {wallSnapIndicator?.snapped && (
+        <SnapIndicator3D planX={wallSnapIndicator.planX} planY={wallSnapIndicator.planY} pxPerFt={pxPerFt} />
+      )}
     </group>
   )
 }

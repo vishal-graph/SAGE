@@ -35,6 +35,7 @@ export const FURNITURE_PRESETS: Preset[] = [
   { type: 'chair_modern', label: 'Chair (modern)', widthFt: 2, depthFt: 2, category: 'Seating' },
   { type: 'chair_cushion', label: 'Chair (cushion)', widthFt: 2, depthFt: 2, category: 'Seating' },
   { type: 'dining_chair', label: 'Dining chair', widthFt: 2, depthFt: 2, category: 'Seating' },
+  { type: 'round_sofa', label: 'ROUND SOFA', widthFt: 4.5, depthFt: 4.5, category: 'Seating' },
 
   // Sleep
   { type: 'bed_king', label: 'Bed King', widthFt: 6.5, depthFt: 6.7, category: 'Sleep' },
@@ -168,6 +169,8 @@ export function createFurnitureFromPreset(
     gridY,
     rotation: 0,
     freeOffsetPx: [0, 0],
+    elevationFt: 0,
+    locked: false,
   }
 }
 
@@ -199,6 +202,8 @@ export function createCustomFurniture(
     gridY,
     rotation: 0,
     freeOffsetPx: [0, 0],
+    elevationFt: 0,
+    locked: false,
   }
 }
 
@@ -221,6 +226,7 @@ export function normalizeFurnitureFromPayload(raw: unknown): FurnitureItem | nul
     Array.isArray(fo) && fo.length >= 2
       ? [Number(fo[0]) || 0, Number(fo[1]) || 0]
       : [0, 0]
+  const elevationFt = Number(o.elevationFt)
   return {
     id: o.id,
     type: o.type,
@@ -231,5 +237,7 @@ export function normalizeFurnitureFromPayload(raw: unknown): FurnitureItem | nul
     gridY: Number.isFinite(gridY) ? gridY : 0,
     rotation,
     freeOffsetPx,
+    elevationFt: Number.isFinite(elevationFt) ? elevationFt : 0,
+    locked: Boolean(o.locked),
   }
 }

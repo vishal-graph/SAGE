@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+
+import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel
 
@@ -8,6 +11,7 @@ from app.services.auth import (
     create_session,
     create_user,
     find_user_by_identifier,
+    find_user_by_phone,
     find_users_by_identifier,
     hash_password,
     get_token_from_header,
@@ -27,6 +31,117 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 class OkResponse(BaseModel):
     ok: bool
+
+
+class SendOtpRequest(BaseModel):
+    phoneNumber: str
+
+
+class VerifyOtpRequest(BaseModel):
+    phoneNumber: str
+    otp: str
+
+
+def _otp_base_url() -> str:
+    return (os.environ.get("SIGE_OTP_BASE_URL") or "https://devapi.tatvaops.com/users/api/auth").rstrip("/")
+
+
+class VendorOtpSignInRequest(BaseModel):
+    phoneNumber: str
+    otp: str
+    email: str | None = None
+
+
+@router.post("/vendor/otp-sign-in", response_model=AuthResponse)
+def vendor_otp_sign_in(body: VendorOtpSignInRequest) -> AuthResponse:
+    """
+    First-time vendor flow:
+    - verifies OTP with upstream provider
+    - creates vendor user if missing (password is random, login is via OTP)
+    - returns a normal SIGE session token
+    """
+    url = f"{_otp_base_url()}/verify-otp"
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(url, json={"phoneNumber": body.phoneNumber, "otp": body.otp})
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+
+    if resp.status_code >= 400:
+        detail = resp.text[:2000] if resp.text else "OTP provider error"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+    # Heuristic: treat explicit { ok/verified/success: false } as invalid.
+    try:
+        payload = resp.json()
+        if isinstance(payload, dict):
+            if payload.get("ok") is False or payload.get("verified") is False or payload.get("success") is False:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid OTP")
+    except HTTPException:
+        raise
+    except Exception:
+        payload = None
+
+    phone = normalize_phone(body.phoneNumber)
+    user = find_user_by_phone(phone, "vendor")
+    if not user:
+        email = normalize_email(body.email or "") or f"{phone.lstrip('+')}@vendor.local"
+        user = create_user(
+            email=email,
+            phone=phone,
+            password=os.urandom(16).hex(),
+            name="Vendor",
+            role="vendor",
+        )
+    else:
+        # Allow capturing email during OTP onboarding if provided.
+        if body.email and body.email.strip():
+            user["email"] = normalize_email(body.email)
+            save_user(user)
+
+    token = create_session(str(user["id"]))
+    return AuthResponse(token=token, user=to_user_summary(user))
+
+
+@router.post("/otp/send")
+def send_otp(body: SendOtpRequest):
+    """
+    Proxy OTP send through the upstream provider API.
+    Frontend should call this endpoint (no CORS/provider coupling).
+    """
+    url = f"{_otp_base_url()}/send-otp"
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(url, json={"phoneNumber": body.phoneNumber})
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+
+    if resp.status_code >= 400:
+        detail = resp.text[:2000] if resp.text else "OTP provider error"
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+    try:
+        return resp.json()
+    except Exception:
+        return {"ok": True, "raw": resp.text}
+
+
+@router.post("/otp/verify")
+def verify_otp(body: VerifyOtpRequest):
+    """Proxy OTP verify through the upstream provider API."""
+    url = f"{_otp_base_url()}/verify-otp"
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(url, json={"phoneNumber": body.phoneNumber, "otp": body.otp})
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"OTP provider unreachable: {e.__class__.__name__}") from e
+
+    if resp.status_code >= 400:
+        detail = resp.text[:2000] if resp.text else "OTP provider error"
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+    try:
+        return resp.json()
+    except Exception:
+        return {"ok": True, "raw": resp.text}
 
 
 @router.post("/sign-up", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
@@ -52,7 +167,13 @@ def sign_in(body: SignInRequest) -> AuthResponse:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Multiple accounts found. Please choose user type and sign in again",
             )
-    if not user or not verify_password(body.password, str(user.get("password_hash", ""))):
+
+    # Dev-only vendor bypass password:
+    # Enable by setting SIGE_VENDOR_BYPASS_PASSWORD in the backend environment.
+    bypass_pw = (os.environ.get("SIGE_VENDOR_BYPASS_PASSWORD") or "").strip()
+    bypass_ok = bool(bypass_pw) and body.role == "vendor" and body.password == bypass_pw
+
+    if not user or (not bypass_ok and not verify_password(body.password, str(user.get("password_hash", "")))):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email/phone or password")
     token = create_session(str(user["id"]))
     return AuthResponse(token=token, user=to_user_summary(user))

@@ -8,10 +8,6 @@ import { BottomHUD } from './layout/BottomHUD'
 import { LeftToolDock } from './layout/LeftToolDock'
 import { RightFloatingPanels } from './layout/RightFloatingPanels'
 import { TopBar } from './layout/TopBar'
-import { AnalysisTopBarButtons } from './layout/AnalysisTopBarButtons'
-import { AnalysisActionsProvider } from '../context/AnalysisActionsContext'
-import { GeminiCleanPlanPanel } from './Dashboard/GeminiCleanPlanPanel'
-import { MetricsPanel } from './Dashboard/MetricsPanel'
 import { FurnitureLibrary } from './Sidebar/FurnitureLibrary'
 import { LayerToggles } from './Sidebar/LayerToggles'
 import { ModalWrapper } from './ui/ModalWrapper'
@@ -22,11 +18,13 @@ import { MaterialIcon } from './ui/MaterialIcon'
 import { useAuth } from '../context/AuthContext'
 import { resetSigeWorkspace, useSigeStore } from '../store/useSigeStore'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { useLuxAnalysis } from '../hooks/useLuxAnalysis'
 import { postJson, getJson } from '../api/client'
 import type { ShareReadonlyResponse } from '../types/auth'
 import { pdfFirstPageToDataUrl } from '../utils/pdf'
 export function SigeApp() {
   useKeyboardShortcuts()
+  useLuxAnalysis()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
@@ -38,6 +36,8 @@ export function SigeApp() {
   const [projectLoadError, setProjectLoadError] = useState('')
   const [loadingProject, setLoadingProject] = useState(false)
   const [sharingReadonly, setSharingReadonly] = useState(false)
+  const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [autoSaveError, setAutoSaveError] = useState('')
   const floorViewMode = useSigeStore((s) => s.floorViewMode)
   const setFloorViewMode = useSigeStore((s) => s.setFloorViewMode)
   const rotateFloorPlan90 = useSigeStore((s) => s.rotateFloorPlan90)
@@ -63,6 +63,24 @@ export function SigeApp() {
   const loadProjectPayload = useSigeStore((s) => s.loadProjectPayload)
   const rooms = useSigeStore((s) => s.rooms)
   const imageFilename = useSigeStore((s) => s.imageFilename)
+  const imageNaturalWidth = useSigeStore((s) => s.imageNaturalWidth)
+  const imageNaturalHeight = useSigeStore((s) => s.imageNaturalHeight)
+  const showFloorPlanImage = useSigeStore((s) => s.showFloorPlanImage)
+  const showWalls = useSigeStore((s) => s.showWalls)
+  const showDoors = useSigeStore((s) => s.showDoors)
+  const showWindows = useSigeStore((s) => s.showWindows)
+  const showCeilings = useSigeStore((s) => s.showCeilings)
+  const showLights = useSigeStore((s) => s.showLights)
+  const forceShowCeilings = useSigeStore((s) => s.forceShowCeilings)
+  const connectionPoints = useSigeStore((s) => s.connectionPoints)
+  const walls = useSigeStore((s) => s.walls)
+  const doors = useSigeStore((s) => s.doors)
+  const windows = useSigeStore((s) => s.windows)
+  const ceilings = useSigeStore((s) => s.ceilings)
+  const lights = useSigeStore((s) => s.lights)
+  const furniture = useSigeStore((s) => s.furniture)
+  const lastAutoSavedSnapshotRef = useRef<string | null>(null)
+  const autoSaveTimerRef = useRef<number | null>(null)
 
   const confirmCalibrate = () => {
     if (!scale?.pointA || !scale?.pointB) return
@@ -99,15 +117,31 @@ export function SigeApp() {
   const readFile = async (file: File) => {
     useSigeStore.setState({
       rooms: [],
+      connectionPoints: [],
       walls: [],
       doors: [],
+      windows: [],
+      ceilings: [],
+      lights: [],
       furniture: [],
       past: [],
       future: [],
       selectedFurnitureId: null,
+      selectedWallId: null,
+      selectedWallIds: [],
+      selectedDoorId: null,
+      selectedWindowId: null,
+      selectedCeilingId: null,
+      selectedLightId: null,
       scale: null,
       calibrateStep: 0,
       showFloorPlanImage: true,
+      showWalls: true,
+      showDoors: true,
+      showWindows: true,
+      showCeilings: true,
+      showLights: true,
+      forceShowCeilings: false,
       aiCleanPlanLoading: false,
       floorViewMode: '2d',
       floorPlanRotationDeg: 0,
@@ -142,6 +176,14 @@ export function SigeApp() {
       minPathWidthFt,
       pxPerFt: scale?.pxPerFt,
       showFloorPlanImage: useSigeStore.getState().showFloorPlanImage,
+      showWalls: useSigeStore.getState().showWalls,
+      showDoors: useSigeStore.getState().showDoors,
+      showWindows: useSigeStore.getState().showWindows,
+      showCeilings: useSigeStore.getState().showCeilings,
+      showLights: useSigeStore.getState().showLights,
+      showLuxHeatmap: useSigeStore.getState().showLuxHeatmap,
+      renderBrightness: useSigeStore.getState().renderBrightness,
+      forceShowCeilings: useSigeStore.getState().forceShowCeilings,
       floorPlanRotationDeg: useSigeStore.getState().floorPlanRotationDeg,
     },
     scale: scale
@@ -150,13 +192,18 @@ export function SigeApp() {
     image: {
       filename: imageFilename,
       dataUrl: imageUrl,
-      width: useSigeStore.getState().imageNaturalWidth,
-      height: useSigeStore.getState().imageNaturalHeight,
+      width: imageNaturalWidth,
+      height: imageNaturalHeight,
     },
     geometry: {
       rooms: useSigeStore.getState().rooms,
+      view_posts: (useSigeStore.getState() as any).viewPosts,
+      connection_points: useSigeStore.getState().connectionPoints,
       walls: useSigeStore.getState().walls,
       doors: useSigeStore.getState().doors,
+      windows: useSigeStore.getState().windows,
+      ceilings: useSigeStore.getState().ceilings,
+      lights: useSigeStore.getState().lights,
     },
     furniture: useSigeStore.getState().furniture,
   })
@@ -172,15 +219,17 @@ export function SigeApp() {
     URL.revokeObjectURL(a.href)
   }
 
-  const saveServer = async () => {
+  const saveServer = async ({ silent = false }: { silent?: boolean } = {}) => {
     let id = projectId
     if (!id) {
       const res = await postJson<{ project_id: string }>('/project/new', {})
       id = res.project_id
       setProjectId(id)
     }
-    await postJson('/project/save', { project_id: id, payload: buildExportPayload() })
-    alert(`Saved as ${id}`)
+    const payload = buildExportPayload()
+    await postJson('/project/save', { project_id: id, payload })
+    lastAutoSavedSnapshotRef.current = JSON.stringify(payload)
+    if (!silent) alert(`Saved as ${id}`)
   }
 
   const loadServer = async () => {
@@ -207,6 +256,56 @@ export function SigeApp() {
       setSharingReadonly(false)
     }
   }
+
+  useEffect(() => {
+    if (!projectId || loadingProject || sharingReadonly) return
+    if (autoSaveTimerRef.current) window.clearTimeout(autoSaveTimerRef.current)
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      const payload = buildExportPayload()
+      const snapshot = JSON.stringify(payload)
+      if (snapshot === lastAutoSavedSnapshotRef.current) return
+      setAutoSaveState('saving')
+      setAutoSaveError('')
+      postJson('/project/save', { project_id: projectId, payload })
+        .then(() => {
+          lastAutoSavedSnapshotRef.current = snapshot
+          setAutoSaveState('saved')
+        })
+        .catch((err) => {
+          setAutoSaveState('error')
+          setAutoSaveError(err instanceof Error ? err.message : 'Auto-save failed')
+        })
+    }, 1100)
+    return () => {
+      if (autoSaveTimerRef.current) window.clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [
+    projectId,
+    loadingProject,
+    sharingReadonly,
+    imageUrl,
+    imageFilename,
+    imageNaturalWidth,
+    imageNaturalHeight,
+    showFloorPlanImage,
+    showWalls,
+    showDoors,
+    showWindows,
+    showCeilings,
+    showLights,
+    forceShowCeilings,
+    floorPlanRotationDeg,
+    gridSizeFt,
+    minPathWidthFt,
+    scale,
+    connectionPoints,
+    walls,
+    doors,
+    windows,
+    ceilings,
+    lights,
+    furniture,
+  ])
 
   const triggerUpload = () => fileRef.current?.click()
 
@@ -251,7 +350,6 @@ export function SigeApp() {
     ) : undefined
 
   return (
-    <AnalysisActionsProvider>
     <AppLayout>
       <input
         ref={fileRef}
@@ -281,8 +379,21 @@ export function SigeApp() {
           navigate(`/projects/${encodeURIComponent(projectId)}/customer`)
         }}
         showMessagesButton={user?.role === 'vendor'}
-        analysisControls={<AnalysisTopBarButtons />}
+        on3DEditorClick={() => navigate('/editor/3d')}
+        analysisControls={null}
       />
+      {projectId && !loadingProject && (
+        <div className="fixed right-3 top-14 z-[120] rounded-lg border border-outline-variant/25 bg-white/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md">
+          {autoSaveState === 'saving' && <span className="text-primary">Auto-saving...</span>}
+          {autoSaveState === 'saved' && <span className="text-emerald-700">Auto-saved</span>}
+          {autoSaveState === 'error' && (
+            <span className="text-error" title={autoSaveError}>
+              Auto-save failed
+            </span>
+          )}
+          {autoSaveState === 'idle' && <span className="text-on-surface-variant">Auto-save on</span>}
+        </div>
+      )}
       {sharingReadonly && (
         <div className="fixed inset-0 z-[220] flex items-center justify-center bg-on-surface/35 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-md rounded-2xl border border-outline-variant/25 bg-white/95 p-6 text-center shadow-[var(--shadow-ambient-lg)]">
@@ -442,10 +553,6 @@ export function SigeApp() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto space-y-4 p-4">
-            <div className="floating-card space-y-6 p-4">
-              <GeminiCleanPlanPanel />
-              <MetricsPanel />
-            </div>
             <div className="floating-card p-4">
               <FurnitureLibrary />
             </div>
@@ -501,6 +608,5 @@ export function SigeApp() {
         </div>
       </ModalWrapper>
     </AppLayout>
-    </AnalysisActionsProvider>
   )
 }

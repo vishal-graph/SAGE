@@ -3,11 +3,21 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { SigeApp } from './components/SigeApp'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CustomerProjectPage } from './pages/CustomerProjectPage'
+import { Editor3DPage } from './pages/Editor3DPage'
 import { NewProjectPage } from './pages/NewProjectPage'
 import { ProjectDashboardPage } from './pages/ProjectDashboardPage'
 import { ReadOnlyProject3DPage } from './pages/ReadOnlyProject3DPage'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
+import { VendorRegisterPage } from './pages/VendorRegisterPage'
+
+function loginPathFor(pathname: string): '/sp/login' | '/us/login' {
+  // Customer-facing pages
+  if (pathname.startsWith('/projects/') && (pathname.includes('/customer') || pathname.includes('/read-only-3d'))) {
+    return '/us/login'
+  }
+  return '/sp/login'
+}
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -18,7 +28,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/sign-in" replace state={{ from: location }} />
+    return <Navigate to={loginPathFor(location.pathname)} replace state={{ from: location }} />
   }
 
   return <>{children}</>
@@ -49,7 +59,7 @@ function AppRoutes() {
         path="/sign-in"
         element={
           <PublicOnlyRoute>
-            <SignInPage />
+            <Navigate to="/sp/login" replace />
           </PublicOnlyRoute>
         }
       />
@@ -57,7 +67,57 @@ function AppRoutes() {
         path="/sign-up"
         element={
           <PublicOnlyRoute>
-            <SignUpPage />
+            <Navigate to="/sp/signup" replace />
+          </PublicOnlyRoute>
+        }
+      />
+
+      {/* Vendor portal */}
+      <Route
+        path="/sp/login"
+        element={
+          <PublicOnlyRoute>
+            <SignInPage portal="vendor" defaultMode="password" />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/sp/signup"
+        element={
+          <PublicOnlyRoute>
+            <Navigate to="/sp/register" replace />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/sp/register"
+        element={
+          <VendorRegisterPage />
+        }
+      />
+
+      {/* Customer portal */}
+      <Route
+        path="/us/login"
+        element={
+          <PublicOnlyRoute>
+            <SignInPage portal="customer" defaultMode="password" />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/us/invite"
+        element={
+          <PublicOnlyRoute>
+            <SignInPage portal="customer" defaultMode="invite" />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/us/signup"
+        element={
+          <PublicOnlyRoute>
+            <SignUpPage portal="customer" />
           </PublicOnlyRoute>
         }
       />
@@ -98,6 +158,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SigeApp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/editor/3d"
+        element={
+          <ProtectedRoute>
+            <Editor3DPage />
           </ProtectedRoute>
         }
       />

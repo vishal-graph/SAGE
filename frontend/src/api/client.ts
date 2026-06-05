@@ -175,6 +175,22 @@ export async function postFile<T>(path: string, file: File): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export async function postFormData<T>(path: string, form: FormData): Promise<T> {
+  const token = getStoredAuthToken()
+  let res: Response
+  try {
+    res = await fetch(`${getApiBase()}${path}`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: form,
+    })
+  } catch (e) {
+    throw new Error(`Network error posting form data to ${getApiBase()}${path}. ${e instanceof Error ? e.message : String(e)}`)
+  }
+  if (!res.ok) throw new HttpApiError(res.status, formatApiErrorBody(await res.text(), res.status))
+  return res.json() as Promise<T>
+}
+
 export function createAuthedWebSocket(path: string): WebSocket {
   const token = getStoredAuthToken()
   if (!token) throw new Error('Authentication required')

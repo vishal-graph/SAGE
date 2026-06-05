@@ -15,6 +15,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
   signIn: (identifier: string, password: string, role?: 'vendor' | 'customer' | 'supplier') => Promise<void>
+  vendorOtpSignIn: (phoneNumber: string, otp: string, email?: string) => Promise<void>
   signInWithInviteCode: (identifier: string, inviteCode: string) => Promise<void>
   activateCustomerInvite: (identifier: string, inviteCode: string, password: string, name: string) => Promise<void>
   signUp: (
@@ -67,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistAuth(payload, setUser)
   }, [])
 
+  const vendorOtpSignIn = useCallback(async (phoneNumber: string, otp: string, email?: string) => {
+    const payload = await postJson<AuthResponse>('/auth/vendor/otp-sign-in', { phoneNumber, otp, email })
+    persistAuth(payload, setUser)
+  }, [])
+
   const signInWithInviteCode = useCallback(async (identifier: string, inviteCode: string) => {
     const payload = await postJson<AuthResponse>('/auth/sign-in/invite-code', {
       identifier,
@@ -116,13 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user),
       isLoading,
       signIn,
+      vendorOtpSignIn,
       signInWithInviteCode,
       activateCustomerInvite,
       signUp,
       signOut,
       refreshUser,
     }),
-    [user, isLoading, signIn, signInWithInviteCode, activateCustomerInvite, signUp, signOut, refreshUser],
+    [user, isLoading, signIn, vendorOtpSignIn, signInWithInviteCode, activateCustomerInvite, signUp, signOut, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

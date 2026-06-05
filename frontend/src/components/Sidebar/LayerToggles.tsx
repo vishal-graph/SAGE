@@ -45,10 +45,18 @@ export function LayerToggles() {
   const showGrid = useSigeStore((s) => s.showGrid)
   const showHeatmap = useSigeStore((s) => s.showHeatmap)
   const showCirculation = useSigeStore((s) => s.showCirculation)
+  const showWalls = useSigeStore((s) => s.showWalls)
+  const showDoors = useSigeStore((s) => s.showDoors)
+  const showWindows = useSigeStore((s) => s.showWindows)
+  const showCeilings = useSigeStore((s) => s.showCeilings)
+  const showLights = useSigeStore((s) => s.showLights)
   const showFloorPlanImage = useSigeStore((s) => s.showFloorPlanImage)
   const snapToGrid = useSigeStore((s) => s.snapToGrid)
+  const angleLockEnabled = useSigeStore((s) => s.angleLockEnabled)
   const setLayerFlags = useSigeStore((s) => s.setLayerFlags)
+  const setStructureVisibility = useSigeStore((s) => s.setStructureVisibility)
   const setSnapToGrid = useSigeStore((s) => s.setSnapToGrid)
+  const setAngleLockEnabled = useSigeStore((s) => s.setAngleLockEnabled)
   const setShowFloorPlanImage = useSigeStore((s) => s.setShowFloorPlanImage)
 
   return (
@@ -58,6 +66,36 @@ export function LayerToggles() {
         label="Floor plan image"
         checked={showFloorPlanImage}
         onChange={setShowFloorPlanImage}
+      />
+      <ToggleRow
+        icon="wall_art"
+        label="Walls"
+        checked={showWalls}
+        onChange={(v) => setStructureVisibility({ showWalls: v })}
+      />
+      <ToggleRow
+        icon="door_front"
+        label="Doors"
+        checked={showDoors}
+        onChange={(v) => setStructureVisibility({ showDoors: v })}
+      />
+      <ToggleRow
+        icon="window"
+        label="Windows"
+        checked={showWindows}
+        onChange={(v) => setStructureVisibility({ showWindows: v })}
+      />
+      <ToggleRow
+        icon="roofing"
+        label="Ceilings"
+        checked={showCeilings}
+        onChange={(v) => setStructureVisibility({ showCeilings: v })}
+      />
+      <ToggleRow
+        icon="light"
+        label="Ceiling lights"
+        checked={showLights}
+        onChange={(v) => setStructureVisibility({ showLights: v })}
       />
       <ToggleRow
         icon="grid_view"
@@ -82,6 +120,12 @@ export function LayerToggles() {
         label="Snap to grid"
         checked={snapToGrid}
         onChange={setSnapToGrid}
+      />
+      <ToggleRow
+        icon="straighten"
+        label="Angle lock (45°)"
+        checked={angleLockEnabled}
+        onChange={setAngleLockEnabled}
       />
     </div>
   )

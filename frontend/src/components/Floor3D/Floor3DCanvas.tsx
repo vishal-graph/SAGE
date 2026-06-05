@@ -1,6 +1,7 @@
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { useEffect, useMemo, useState } from 'react'
 import { useDerivedGrid } from '../../hooks/useDerivedGrid'
 import { useSigeStore } from '../../store/useSigeStore'
@@ -10,7 +11,17 @@ import { Floor3DInteractionPlane } from './Floor3DInteractionPlane'
 import { Furniture3D } from './Furniture3D'
 import { FloorPlanGrids3D } from './FloorPlanGrids3D'
 import { FloorPlanOverlay3D } from './FloorPlanOverlay3D'
+import { PostViewController } from './PostViewController'
 import { furniturePlanScaleFactorFromStoreInputs, libraryKenneyPreloadUrls } from '../../utils/furnitureLib'
+import type { ConnectionPoint, Window } from '../../types'
+
+function RendererExposureTuner({ mode }: { mode: import('../../store/useSigeStore').RenderBrightnessMode }) {
+  const { gl } = useThree()
+  useEffect(() => {
+    gl.toneMappingExposure = mode === 'dark' ? 0.55 : 1.1
+  }, [gl, mode])
+  return null
+}
 
 function SceneContent({
   widthFt,
@@ -36,11 +47,17 @@ function SceneContent({
   readOnly?: boolean
 }) {
   const [orbitEnabled, setOrbitEnabled] = useState(true)
+  const renderBrightness = useSigeStore((s) => s.renderBrightness)
   const furniture = useSigeStore((s) => s.furniture)
   const selectedId = useSigeStore((s) => s.selectedFurnitureId)
   const walls = useSigeStore((s) => s.walls)
   const rooms = useSigeStore((s) => s.rooms)
   const doors = useSigeStore((s) => s.doors)
+  const windows = useSigeStore((s) => s.windows)
+  const ceilings = useSigeStore((s) => s.ceilings)
+  const lights = useSigeStore((s) => s.lights)
+  const connectionPoints = useSigeStore((s) => s.connectionPoints)
+  const postViewActive = useSigeStore((s) => (s as any).postViewActive as boolean)
 
   const gridInputs = useMemo((): GridInputs | null => {
     if (!pxPerFt || cellSizePx <= 0 || imageNaturalWidth <= 0 || imageNaturalHeight <= 0) return null
@@ -95,24 +112,38 @@ function SceneContent({
 
   return (
     <Floor3DOrbitContext.Provider value={setOrbitEnabled}>
-      <ambientLight intensity={0.36} color="#ffffff" />
-      <hemisphereLight intensity={0.3} groundColor="#f0f0f0" color="#fafafa" />
+      {/* Keep global light low so fixtures visibly shape the scene */}
+      <ambientLight intensity={renderBrightness === 'dark' ? 0.03 : 0.18} color="#ffffff" />
+      <hemisphereLight intensity={renderBrightness === 'dark' ? 0.05 : 0.18} groundColor="#f0f0f0" color="#fafafa" />
       <directionalLight
         color="#ffffff"
         position={[widthFt * 0.6, Math.max(widthFt, depthFt) * 1.2, depthFt * 0.5]}
-        intensity={0.7}
+        intensity={renderBrightness === 'dark' ? 0.15 : 0.55}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-near={0.1}
+        shadow-camera-far={Math.max(80, Math.max(widthFt, depthFt) * 4)}
+        shadow-camera-left={-Math.max(widthFt, depthFt)}
+        shadow-camera-right={Math.max(widthFt, depthFt)}
+        shadow-camera-top={Math.max(widthFt, depthFt)}
+        shadow-camera-bottom={-Math.max(widthFt, depthFt)}
       />
 
       <OrbitControls
         makeDefault
         enableDamping
         dampingFactor={0.08}
-        enabled={orbitEnabled}
+        enabled={orbitEnabled && !postViewActive}
         target={[orbitTarget.x, 0, orbitTarget.z]}
         maxPolarAngle={Math.PI / 2 - 0.06}
         minDistance={4}
         maxDistance={camDistance * 3}
       />
+
+      <RendererExposureTuner mode={renderBrightness} />
+
+      {pxPerFt != null && <PostViewController pxPerFt={pxPerFt} />}
 
       <Floor3DInteractionPlane
         widthFt={widthFt}
@@ -148,6 +179,10 @@ function SceneContent({
           walls={walls}
           rooms={rooms}
           doors={doors}
+          windows={windows as Window[]}
+          ceilings={ceilings}
+          lights={lights}
+          connectionPoints={connectionPoints as ConnectionPoint[]}
         />
       )}
 
@@ -173,6 +208,7 @@ export function Floor3DCanvas({ className, readOnly = false }: { className?: str
   const imageNaturalWidth = useSigeStore((s) => s.imageNaturalWidth)
   const imageNaturalHeight = useSigeStore((s) => s.imageNaturalHeight)
   const showFloorPlanImage = useSigeStore((s) => s.showFloorPlanImage)
+  const renderBrightness = useSigeStore((s) => s.renderBrightness)
   const tool = useSigeStore((s) => s.tool)
   const pendingFurniturePreset = useSigeStore((s) => s.pendingFurniturePreset)
 
@@ -225,8 +261,13 @@ export function Floor3DCanvas({ className, readOnly = false }: { className?: str
         onCreated={({ gl, scene }) => {
           scene.background = null
           gl.setClearColor(0x000000, 0)
-          gl.toneMapping = THREE.NoToneMapping
-          gl.toneMappingExposure = 1
+          gl.toneMapping = THREE.ACESFilmicToneMapping
+          gl.toneMappingExposure = renderBrightness === 'dark' ? 0.8 : 1.1
+          gl.shadowMap.enabled = true
+          gl.shadowMap.type = THREE.PCFSoftShadowMap
+          ;(gl as unknown as { physicallyCorrectLights: boolean }).physicallyCorrectLights = true
+          gl.outputColorSpace = THREE.SRGBColorSpace
+          RectAreaLightUniformsLib.init()
         }}
       >
         <SceneContent

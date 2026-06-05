@@ -8,6 +8,7 @@ export function AuthShell({
   altHref,
   altLabel,
   children,
+  compact = false,
 }: {
   title: string
   subtitle: string
@@ -15,11 +16,22 @@ export function AuthShell({
   altHref: string
   altLabel: string
   children: ReactNode
+  compact?: boolean
 }) {
   return (
-    <div className="h-dvh overflow-y-auto spatial-grid-bg px-3 py-5 text-on-surface sm:px-5 sm:py-7 lg:px-8 lg:py-8">
-      <div className="mx-auto grid min-h-full max-w-6xl items-start gap-5 sm:gap-7 lg:items-center lg:gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-[1.5rem] border border-white/30 bg-white/60 p-5 shadow-[var(--shadow-ambient-lg)] backdrop-blur-xl sm:rounded-[2rem] sm:p-8 lg:p-12">
+    <div className="h-dvh overflow-y-auto spatial-grid-bg px-3 py-4 text-on-surface sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+      <div
+        className={[
+          'mx-auto grid min-h-full items-start gap-4 sm:gap-6 lg:items-stretch lg:gap-6',
+          compact ? 'max-w-7xl lg:grid-cols-[0.9fr_1.1fr]' : 'max-w-6xl lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-8',
+        ].join(' ')}
+      >
+        <section
+          className={[
+            'rounded-[1.5rem] border border-white/30 bg-white/60 shadow-[var(--shadow-ambient-lg)] backdrop-blur-xl sm:rounded-[2rem]',
+            compact ? 'p-5 sm:p-6 lg:p-8' : 'p-5 sm:p-8 lg:p-12',
+          ].join(' ')}
+        >
           <div className="max-w-xl space-y-6">
             <div className="inline-flex items-center rounded-full bg-primary/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">
               SIGE Workspace
@@ -28,7 +40,7 @@ export function AuthShell({
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">{title}</h1>
               <p className="max-w-lg text-base leading-7 text-on-surface-variant sm:text-lg">{subtitle}</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={compact ? 'hidden' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'}>
               <div className="rounded-2xl bg-surface-container-low/70 p-4">
                 <p className="text-sm font-semibold">Project Dashboard</p>
                 <p className="mt-2 text-sm text-on-surface-variant">Track recent floor plans, counts, and next actions.</p>
@@ -45,7 +57,7 @@ export function AuthShell({
           </div>
         </section>
 
-        <section className="floating-card mx-auto w-full max-w-md p-5 sm:p-6 lg:p-8">
+        <section className={['floating-card mx-auto w-full p-5 sm:p-6 lg:p-8', compact ? 'max-w-3xl' : 'max-w-md'].join(' ')}>
           {children}
           <p className="mt-6 text-center text-sm text-on-surface-variant">
             {altPrompt}{' '}

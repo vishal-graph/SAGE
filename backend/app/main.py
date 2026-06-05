@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from starlette.responses import Response
 
-from app.routers import ai, auth, geo, messages, metrics, project, redis_health, supabase
+from app.routers import ai, auth, geo, messages, metrics, project, redis_health, supabase, vendor
 from app.services.audit import build_request_audit, create_request_id, persist_request_audit
 
 logger = logging.getLogger("uvicorn.error")
@@ -58,6 +58,7 @@ app.include_router(geo.router)
 app.include_router(messages.router)
 app.include_router(supabase.router)
 app.include_router(redis_health.router)
+app.include_router(vendor.router)
 
 
 @app.middleware("http")

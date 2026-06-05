@@ -7,9 +7,14 @@ const TOOL_META: Record<
 > = {
   select: { icon: 'near_me', short: 'Select' },
   calibrate: { icon: 'straighten', short: 'Scale' },
+  connection: { icon: 'join_inner', short: 'Node' },
   room: { icon: 'polyline', short: 'Room' },
   wall: { icon: 'horizontal_rule', short: 'Wall' },
   door: { icon: 'door_front', short: 'Door' },
+  window: { icon: 'window', short: 'Window' },
+  ceiling: { icon: 'roofing', short: 'Ceiling' },
+  ceilingLight: { icon: 'light', short: 'Lights' },
+  viewPost: { icon: 'view_in_ar', short: 'View' },
   placeFurniture: { icon: 'chair', short: 'Place' },
 }
 

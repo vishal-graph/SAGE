@@ -156,6 +156,8 @@ export function doorsToGridCells(
 export type IsPlacementValidOptions = {
   /** When true, other furniture does not block (walls and bounds still apply). */
   allowFurnitureOverlap?: boolean
+  /** When true, wall cells do not block placement (useful in 3D editor). */
+  allowWallOverlap?: boolean
 }
 
 export function isPlacementValid(
@@ -168,11 +170,12 @@ export function isPlacementValid(
   const { cols, rows, cells } = computeGrid({ ...input, furniture: others })
   const occupied = getOccupiedCells(item, input.gridSizeFt)
   const allowOverlap = options?.allowFurnitureOverlap === true
+  const allowWall = options?.allowWallOverlap === true
   for (const [c, r] of occupied) {
     if (c < 0 || r < 0 || c >= cols || r >= rows) return false
     const i = r * cols + c
     const v = cells[i]
-    if (v === CellType.WALL) return false
+    if (!allowWall && v === CellType.WALL) return false
     if (!allowOverlap && v === CellType.FURNITURE) return false
   }
   return occupied.length > 0
